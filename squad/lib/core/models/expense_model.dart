@@ -1,10 +1,10 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+import "package:freezed_annotation/freezed_annotation.dart";
 
-part 'expense_model.freezed.dart';
-part 'expense_model.g.dart';
+part "expense_model.freezed.dart";
+part "expense_model.g.dart";
 
 @freezed
-class ExpenseModel with _\ {
+class ExpenseModel with _$ExpenseModel {
   const factory ExpenseModel({
     required String expenseId,
     required String title,
@@ -17,5 +17,5 @@ class ExpenseModel with _\ {
   }) = _ExpenseModel;
 
   factory ExpenseModel.fromJson(Map<String, dynamic> json) =>
-      _\(json);
+      _$ExpenseModelFromJson(json);
 }

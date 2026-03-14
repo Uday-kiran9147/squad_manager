@@ -10,10 +10,9 @@ class AppTheme {
     colorScheme: const ColorScheme.dark(
       primary: AppColors.accent,
       surface: AppColors.surface,
-      background: AppColors.background,
       onPrimary: Colors.white,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: AppColors.surface,
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

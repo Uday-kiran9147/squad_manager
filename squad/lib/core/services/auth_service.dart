@@ -1,4 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import "package:firebase_auth/firebase_auth.dart";
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -11,12 +11,12 @@ class AuthService {
 
   Future<void> verifyPhoneNumber({
     required String phoneNumber,
-    required Function(PhoneAuthCredential) onCodeSent,
+    required Function(String) onCodeSent,
     required Function(FirebaseAuthException) onError,
   }) async {
     try {
       await _auth.verifyPhoneNumber(
-        phoneNumber: '+91\',
+        phoneNumber: "+91$phoneNumber",
         verificationCompleted: (PhoneAuthCredential credential) async {
           await _auth.signInWithCredential(credential);
         },

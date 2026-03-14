@@ -25,7 +25,7 @@ class DateHelpers {
     final difference = date.difference(now).inDays;
     if (difference == 0) return 'Today';
     if (difference == 1) return 'Tomorrow';
-    if (difference < 0) return '\ days ago';
-    return 'In \ days';
+    if (difference < 0) return ' days ago';
+    return 'In  days';
   }
 }

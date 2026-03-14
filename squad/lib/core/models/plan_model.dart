@@ -1,12 +1,12 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+import "package:freezed_annotation/freezed_annotation.dart";
 
-part 'plan_model.freezed.dart';
-part 'plan_model.g.dart';
+part "plan_model.freezed.dart";
+part "plan_model.g.dart";
 
 enum PlanStatus { draft, polling, confirmed, completed }
 
 @freezed
-class PlanModel with _\ {
+class PlanModel with _$PlanModel {
   const factory PlanModel({
     required String planId,
     required String title,
@@ -23,5 +23,5 @@ class PlanModel with _\ {
   }) = _PlanModel;
 
   factory PlanModel.fromJson(Map<String, dynamic> json) =>
-      _\(json);
+      _$PlanModelFromJson(json);
 }

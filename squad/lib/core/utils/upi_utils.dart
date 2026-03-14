@@ -6,7 +6,7 @@ class UpiUtils {
     required String note,
   }) {
     final encoded = Uri.encodeComponent(note);
-    return 'upi://pay?pa=\&pn=\&am=\&cu=INR&tn=\';
+    return 'upi://pay?pa=$upiId&pn=$payeeName&am=${amount.toStringAsFixed(2)}&cu=INR&tn=$encoded';
   }
 
   static bool isValidUpiId(String upiId) {

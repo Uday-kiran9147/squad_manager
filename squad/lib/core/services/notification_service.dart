@@ -1,4 +1,4 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
+import "package:firebase_messaging/firebase_messaging.dart";
 
 class NotificationService {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
@@ -27,12 +27,12 @@ class NotificationService {
   }
 
   Future<String> getFcmToken() async {
-    return await _messaging.getToken() ?? '';
+    return await _messaging.getToken() ?? "";
   }
 
   void _handleMessage(RemoteMessage message) {
-    print('Message: \');
-    print('Body: \');
+    // print("Message: ${message.notification?.title}");
+    // print("Body: ${message.notification?.body}");
   }
 
   Future<void> subscribeToTopic(String topic) async {
