@@ -1,20 +1,12 @@
 class Validators {
+  // optional
   static String? validatePhoneNumber(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Phone number is required';
+    if (value == null || value.trim().isEmpty) {
+      return null;
     }
-    if (!RegExp(r'^\d{10}$').hasMatch(value.replaceAll(RegExp(r'[^\d]'), ''))) {
+    final digits = value.replaceAll(RegExp(r'[^\d]'), '');
+    if (digits.length != 10) {
       return 'Enter a valid 10-digit phone number';
-    }
-    return null;
-  }
-
-  static String? validateOtp(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'OTP is required';
-    }
-    if (!RegExp(r'^\d{6}$').hasMatch(value)) {
-      return 'OTP must be 6 digits';
     }
     return null;
   }
@@ -23,7 +15,7 @@ class Validators {
     if (value == null || value.isEmpty) {
       return 'Plan title is required';
     }
-    if (value.length < 3) {
+    if (value.trim().length < 3) {
       return 'Title must be at least 3 characters';
     }
     return null;
@@ -35,6 +27,25 @@ class Validators {
     }
     if (double.tryParse(value) == null) {
       return 'Enter a valid amount';
+    }
+    if (double.parse(value) <= 0) {
+      return 'Amount must be greater than 0';
+    }
+    return null;
+  }
+
+  static String? validateRequired(String? value, String fieldName) {
+    if (value == null || value.trim().isEmpty) {
+      return '$fieldName is required';
+    }
+    return null;
+  }
+
+  static String? validateUpiId(String? value) {
+    if (value == null || value.isEmpty) return null; // Optional
+    final upiRegex = RegExp(r'^[\w.-]+@[\w.-]+$');
+    if (!upiRegex.hasMatch(value) && value.isNotEmpty) {
+      return 'Enter a valid UPI ID (e.g., name@bank)';
     }
     return null;
   }

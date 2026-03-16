@@ -1,19 +1,21 @@
-import "package:freezed_annotation/freezed_annotation.dart";
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:squad/core/utils/converters.dart';
 
-part "user_model.freezed.dart";
-part "user_model.g.dart";
+part 'user_model.freezed.dart';
+part 'user_model.g.dart';
 
 @freezed
 class UserModel with _$UserModel {
   const factory UserModel({
     required String uid,
-    required String phone,
-    required String displayName,
-    String? avatarUrl,
-    required bool isPro,
-    DateTime? proUnlockedAt,
-    required DateTime createdAt,
-    required String fcmToken,
+    required String email,
+    String? displayName,
+    String? phone,
+    String? photoURL,
+    String? upiId,
+    @Default(false) bool isPro,
+    @TimestampConverter() DateTime? proUnlockedAt,
+    @TimestampConverter() required DateTime createdAt,
   }) = _UserModel;
 
   factory UserModel.fromJson(Map<String, dynamic> json) =>

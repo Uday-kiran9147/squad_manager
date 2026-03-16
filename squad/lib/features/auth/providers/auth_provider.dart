@@ -14,40 +14,65 @@ final authStateProvider = StreamProvider<User?>((ref) {
 class AuthState {
   final bool isLoading;
   final String? error;
-  final String? verificationId;
 
-  AuthState({this.isLoading = false, this.error, this.verificationId});
+  AuthState({this.isLoading = false, this.error});
 
-  AuthState copyWith({bool? isLoading, String? error, String? verificationId}) {
+  AuthState copyWith({bool? isLoading, String? error}) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
-      verificationId: verificationId ?? this.verificationId,
     );
   }
 }
 
-class PhoneAuthNotifier extends StateNotifier<AuthState> {
-  PhoneAuthNotifier(this._authService) : super(AuthState());
+class AuthNotifier extends StateNotifier<AuthState> {
+  AuthNotifier(this._authService) : super(AuthState());
 
   final AuthService _authService;
 
-  Future<void> verifyPhoneNumber(String phoneNumber) async {
+  Future<void> signInWithGoogle() async {
     state = state.copyWith(isLoading: true, error: null);
-    await _authService.verifyPhoneNumber(
-      phoneNumber: phoneNumber,
-      onCodeSent: (verificationId) {
-        state = state.copyWith(isLoading: false, verificationId: verificationId);
-      },
-      onError: (e) {
-        state = state.copyWith(isLoading: false, error: e.message);
-      },
-    );
+    try {
+      await _authService.signInWithGoogle();
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> signIn(String email, String password) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _authService.signInWithEmail(email, password);
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> signUp(String email, String password) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _authService.signUpWithEmail(email, password);
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> signOut() async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _authService.signOut();
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
   }
 }
 
-final phoneAuthNotifierProvider =
-    StateNotifierProvider<PhoneAuthNotifier, AuthState>((ref) {
+final authNotifierProvider =
+    StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final authService = ref.watch(authServiceProvider);
-  return PhoneAuthNotifier(authService);
+  return AuthNotifier(authService);
 });

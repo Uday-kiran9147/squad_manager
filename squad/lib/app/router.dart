@@ -1,83 +1,87 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../features/auth/screens/phone_auth_screen.dart';
-import '../features/auth/screens/otp_auth_screen.dart';
-import '../features/home/screens/home_screen.dart';
-import '../features/plan/screens/create_plan_screen.dart';
-import '../features/plan/screens/plan_detail_screen.dart';
-import '../features/poll/screens/poll_screen.dart';
-import '../features/expenses/screens/add_expense_screen.dart';
-import '../features/expenses/screens/expense_detail_screen.dart';
-import '../features/profile/screens/profile_screen.dart';
-import '../features/profile/screens/upgrade_screen.dart';
+import 'package:squad/features/auth/screens/email_auth_screen.dart';
+import 'package:squad/features/home/screens/home_screen.dart';
+import 'package:squad/features/plan/screens/create_plan_screen.dart';
 
-class AppRouter {
-  static final router = GoRouter(
-    routes: [
-      GoRoute(
-        path: '/',
-        name: 'home',
-        builder: (context, state) => const HomeScreen(),
-      ),
-      GoRoute(
-        path: '/auth/phone',
-        name: 'phone-auth',
-        builder: (context, state) => const PhoneAuthScreen(),
-      ),
-      GoRoute(
-        path: '/auth/otp',
-        name: 'otp-auth',
-        builder: (context, state) => OtpAuthScreen(
-          phoneNumber: state.extra as String? ?? '',
+import 'package:squad/features/plan/screens/add_expense_screen.dart';
+import 'package:squad/features/plan/screens/confirm_plan_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:squad/features/invite/screens/invite_handler_screen.dart';
+import 'package:squad/features/plan/screens/plan_detail_screen.dart';
+import 'package:squad/features/profile/screens/profile_screen.dart';
+
+final router = GoRouter(
+  initialLocation: '/home',
+  debugLogDiagnostics: true,
+  redirect: (context, state) {
+    final user = FirebaseAuth.instance.currentUser;
+    final isAuthPath = state.matchedLocation.startsWith('/auth');
+    final isInvitePath = state.matchedLocation.startsWith('/invite');
+
+    if (user != null && isAuthPath) return '/home';
+    if (user == null && !isAuthPath && !isInvitePath) return '/auth/email';
+    return null;
+  },
+  routes: [
+    GoRoute(
+      path: '/invite/:planId',
+      builder: (context, state) {
+        final planId = state.pathParameters['planId']!;
+        return InviteHandlerScreen(planId: planId);
+      },
+    ),
+    GoRoute(
+      path: '/auth',
+      builder: (context, state) => const SizedBox(),
+      routes: [
+        GoRoute(
+          path: 'email',
+          builder: (context, state) => const EmailAuthScreen(),
         ),
-      ),
-      GoRoute(
-        path: '/plan/create',
-        name: 'create-plan',
-        builder: (context, state) => const CreatePlanScreen(),
-      ),
-      GoRoute(
-        path: '/plan/:planId',
-        name: 'plan-detail',
-        builder: (context, state) => PlanDetailScreen(
-          planId: state.pathParameters['planId']!,
+      ],
+    ),
+    ShellRoute(
+      builder: (context, state, child) => child,
+      routes: [
+        GoRoute(
+          path: '/home',
+          builder: (context, state) => const HomeScreen(),
+          routes: [
+            GoRoute(
+              path: 'create-plan',
+              pageBuilder: (context, state) => const MaterialPage(child: CreatePlanScreen()),
+            ),
+            GoRoute(
+              path: 'plan/:planId',
+              pageBuilder: (context, state) {
+                final planId = state.pathParameters['planId']!;
+                return MaterialPage(child: PlanDetailScreen(planId: planId));
+              },
+              routes: [
+                GoRoute(
+                  path: 'confirm',
+                  pageBuilder: (context, state) {
+                    final planId = state.pathParameters['planId']!;
+                    return MaterialPage(child: ConfirmPlanScreen(planId: planId));
+                  },
+                ),
+                GoRoute(
+                  path: 'add-expense',
+                  pageBuilder: (context, state) {
+                    final planId = state.pathParameters['planId']!;
+                    return MaterialPage(child: AddExpenseScreen(planId: planId));
+                  },
+                ),
+              ],
+            ),
+          ],
         ),
-      ),
-      GoRoute(
-        path: '/plan/:planId/poll',
-        name: 'poll',
-        builder: (context, state) => PollScreen(
-          planId: state.pathParameters['planId']!,
+        GoRoute(
+          path: '/profile',
+          builder: (context, state) => const ProfileScreen(),
         ),
-      ),
-      GoRoute(
-        path: '/plan/:planId/expense/add',
-        name: 'add-expense',
-        builder: (context, state) => AddExpenseScreen(
-          planId: state.pathParameters['planId']!,
-        ),
-      ),
-      GoRoute(
-        path: '/plan/:planId/expense/:expenseId',
-        name: 'expense-detail',
-        builder: (context, state) => ExpenseDetailScreen(
-          planId: state.pathParameters['planId']!,
-          expenseId: state.pathParameters['expenseId']!,
-        ),
-      ),
-      GoRoute(
-        path: '/profile',
-        name: 'profile',
-        builder: (context, state) => const ProfileScreen(),
-      ),
-      GoRoute(
-        path: '/upgrade',
-        name: 'upgrade',
-        builder: (context, state) => const UpgradeScreen(),
-      ),
-    ],
-    redirect: (context, state) {
-      // TODO: Add auth redirect logic
-      return null;
-    },
-  );
-}
+      ],
+    ),
+  ],
+);

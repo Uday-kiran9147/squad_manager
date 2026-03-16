@@ -1,66 +1,43 @@
-import "package:flutter_riverpod/flutter_riverpod.dart";
-import "../../../core/services/firestore_service.dart";
-import "../../../core/models/user_model.dart";
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:squad/core/providers.dart';
 
-final firestoreServiceProvider5 = Provider<FirestoreService>((ref) {
-  return FirestoreService();
-});
+/// Manages profile update and account deletion.
+class ProfileNotifier extends AsyncNotifier<void> {
+  @override
+  Future<void> build() async {}
 
-final currentUserProvider = StreamProvider<UserModel?>((ref) {
-  const userId = "user123";
-  final firestoreService = ref.watch(firestoreServiceProvider5);
-  return firestoreService.getUserStream(userId);
-});
-
-class ProfileState {
-  final bool isLoading;
-  final String? error;
-
-  ProfileState({this.isLoading = false, this.error});
-
-  ProfileState copyWith({bool? isLoading, String? error}) {
-    return ProfileState(
-      isLoading: isLoading ?? this.isLoading,
-      error: error ?? this.error,
-    );
-  }
-}
-
-class UpdateProfileNotifier extends StateNotifier<ProfileState> {
-  UpdateProfileNotifier(this._firestoreService)
-      : super(ProfileState());
-
-  final FirestoreService _firestoreService;
-
-  Future<void> updateProfile(String uid, String displayName, String? avatarUrl) async {
-    state = state.copyWith(isLoading: true, error: null);
+  Future<void> updateProfile({
+    String? displayName,
+    String? upiId,
+    String? phone,
+  }) async {
+    state = const AsyncLoading();
     try {
-      await _firestoreService.updateUser(uid, {
-        "displayName": displayName,
-        if (avatarUrl != null) "avatarUrl": avatarUrl,
-      });
-      state = state.copyWith(isLoading: false);
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      final uid = ref.read(currentUserIdProvider);
+      if (uid == null) throw Exception('Not authenticated');
+      final data = <String, dynamic>{};
+      if (displayName != null) data['displayName'] = displayName;
+      if (upiId != null) data['upiId'] = upiId;
+      if (phone != null) data['phone'] = phone;
+      await ref.read(userServiceProvider).updateUser(uid, data);
+      state = const AsyncData(null);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
     }
   }
 
-  Future<void> upgradeToPro(String uid) async {
-    state = state.copyWith(isLoading: true, error: null);
+  Future<void> deleteAccount() async {
+    state = const AsyncLoading();
     try {
-      await _firestoreService.updateUser(uid, {
-        "isPro": true,
-        "proUnlockedAt": DateTime.now(),
-      });
-      state = state.copyWith(isLoading: false);
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      await ref.read(authServiceProvider).deleteAccount();
+      state = const AsyncData(null);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
     }
   }
 }
 
-final updateProfileProvider =
-    StateNotifierProvider<UpdateProfileNotifier, ProfileState>((ref) {
-  final firestoreService = ref.watch(firestoreServiceProvider5);
-  return UpdateProfileNotifier(firestoreService);
-});
+final profileNotifierProvider =
+    AsyncNotifierProvider<ProfileNotifier, void>(ProfileNotifier.new);

@@ -1,0 +1,36 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:squad/core/services/auth_service.dart';
+import 'package:squad/core/services/user_service.dart';
+import 'package:squad/core/models/user_model.dart';
+
+final firebaseAuthProvider = Provider<FirebaseAuth>((ref) => FirebaseAuth.instance);
+
+final authServiceProvider = Provider<AuthService>((ref) => AuthService());
+
+final authStateProvider = StreamProvider<User?>((ref) {
+  return ref.watch(firebaseAuthProvider).authStateChanges();
+});
+
+final currentUserIdProvider = Provider<String?>((ref) {
+  return ref.watch(authStateProvider).value?.uid;
+});
+
+final userServiceProvider = Provider<UserService>((ref) => UserService());
+
+final currentUserProvider = StreamProvider<UserModel?>((ref) {
+  final uid = ref.watch(currentUserIdProvider);
+  if (uid == null) return Stream.value(null);
+  return ref.watch(userServiceProvider).watchUser(uid);
+});
+
+final userProvider = FutureProvider.family<UserModel?, String>((ref, uid) {
+  return ref.watch(userServiceProvider).getUser(uid);
+});
+
+/// Batch-fetches UserModel list for a given list of UIDs.
+/// Used for resolving member display names on plan screens.
+final planMembersProvider =
+    FutureProvider.autoDispose.family<List<UserModel>, List<String>>(
+  (ref, memberIds) => ref.watch(userServiceProvider).getUsers(memberIds),
+);

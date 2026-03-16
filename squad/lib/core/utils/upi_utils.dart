@@ -1,3 +1,5 @@
+﻿import 'package:url_launcher/url_launcher.dart';
+
 class UpiUtils {
   static String buildUpiLink({
     required String upiId,
@@ -5,12 +7,29 @@ class UpiUtils {
     required double amount,
     required String note,
   }) {
-    final encoded = Uri.encodeComponent(note);
-    return 'upi://pay?pa=$upiId&pn=$payeeName&am=${amount.toStringAsFixed(2)}&cu=INR&tn=$encoded';
+    final encodedNote = Uri.encodeComponent(note);
+    final encodedName = Uri.encodeComponent(payeeName);
+    return 'upi://pay?pa=$upiId&pn=$encodedName&am=${amount.toStringAsFixed(2)}&cu=INR&tn=$encodedNote';
   }
 
-  static bool isValidUpiId(String upiId) {
-    final regex = RegExp(r'^[a-zA-Z0-9._-]+@[a-zA-Z]{3,}$');
-    return regex.hasMatch(upiId);
+  static Future<void> launchUpi({
+    required String upiId,
+    required String payeeName,
+    required double amount,
+    required String note,
+  }) async {
+    final link = buildUpiLink(
+      upiId: upiId,
+      payeeName: payeeName,
+      amount: amount,
+      note: note,
+    );
+    
+    final uri = Uri.parse(link);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      throw 'Could not launch UPI app. Please ensure you have a UPI app installed.';
+    }
   }
 }
