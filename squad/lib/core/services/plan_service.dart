@@ -3,12 +3,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../features/plan/models/plan.dart';
 import '../../features/plan/models/poll_option.dart';
 import '../../features/plan/models/expense.dart';
+import '../../features/plan/models/itinerary_item.dart';
 
 class PlanService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String _plansCollection = 'plans';
   final String _pollOptionsSubcollection = 'pollOptions';
   final String _expensesSubcollection = 'expenses';
+  final String _itinerarySubcollection = 'itinerary';
 
   // Create Plan
   Future<String> createPlan(Plan plan) async {
@@ -298,6 +300,70 @@ class PlanService {
     if (description != null) data['description'] = description;
     if (location != null) data['location'] = location;
     await _firestore.collection(_plansCollection).doc(planId).update(data);
+  }
+
+  // --- Itinerary Methods ---
+
+  Stream<List<ItineraryItem>> getItineraryForPlan(String planId) {
+    return _firestore
+        .collection(_plansCollection)
+        .doc(planId)
+        .collection(_itinerarySubcollection)
+        .orderBy('time', descending: false)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) {
+              try {
+                return ItineraryItem.fromJson(doc.data());
+              } catch (e) {
+                return null;
+              }
+            })
+            .whereType<ItineraryItem>()
+            .toList());
+  }
+
+  Future<String> addItineraryItem(String planId, ItineraryItem item) async {
+    final docRef = _firestore
+        .collection(_plansCollection)
+        .doc(planId)
+        .collection(_itinerarySubcollection)
+        .doc();
+
+    final newItem = item.copyWith(itemId: docRef.id);
+    await docRef.set(newItem.toJson());
+    return docRef.id;
+  }
+
+  Future<void> updateItineraryItem(String planId, ItineraryItem item) async {
+    await _firestore
+        .collection(_plansCollection)
+        .doc(planId)
+        .collection(_itinerarySubcollection)
+        .doc(item.itemId)
+        .update(item.toJson());
+  }
+
+  Future<void> deleteItineraryItem(String planId, String itemId) async {
+    await _firestore
+        .collection(_plansCollection)
+        .doc(planId)
+        .collection(_itinerarySubcollection)
+        .doc(itemId)
+        .delete();
+  }
+
+  Future<void> toggleItineraryItemCompletion(
+    String planId,
+    String itemId,
+    bool isCompleted,
+  ) async {
+    await _firestore
+        .collection(_plansCollection)
+        .doc(planId)
+        .collection(_itinerarySubcollection)
+        .doc(itemId)
+        .update({'isCompleted': isCompleted});
   }
 
   // Delete Plan

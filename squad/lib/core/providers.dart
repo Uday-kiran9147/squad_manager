@@ -8,6 +8,7 @@ import 'package:squad/core/services/plan_service.dart';
 import 'package:squad/features/plan/models/plan.dart';
 import 'package:squad/features/plan/models/poll_option.dart';
 import 'package:squad/features/plan/models/expense.dart';
+import 'package:squad/features/plan/models/itinerary_item.dart';
 
 final firebaseAuthProvider = Provider<FirebaseAuth>((ref) => FirebaseAuth.instance);
 
@@ -65,4 +66,9 @@ final pollOptionsProvider =
 final expensesProvider =
     StreamProvider.family<List<Expense>, String>((ref, planId) {
   return ref.watch(planServiceProvider).getExpensesForPlan(planId);
+});
+
+final itineraryProvider =
+    StreamProvider.family<List<ItineraryItem>, String>((ref, planId) {
+  return ref.watch(planServiceProvider).getItineraryForPlan(planId);
 });

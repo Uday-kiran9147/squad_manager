@@ -11,6 +11,7 @@ import 'package:squad/core/utils/upi_utils.dart';
 import 'package:squad/features/plan/models/expense.dart';
 import 'package:squad/features/plan/models/plan.dart';
 import 'package:squad/features/plan/models/poll_option.dart';
+import 'package:squad/features/plan/models/itinerary_item.dart';
 import 'package:squad/features/plan/providers/plan_provider.dart';
 
 class PlanDetailScreen extends ConsumerWidget {
@@ -154,7 +155,33 @@ class PlanDetailScreen extends ConsumerWidget {
                   isOrganiser: isOrganiser,
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 20),
+              if (plan.status == PlanStatus.confirmed ||
+                  plan.status == PlanStatus.completed) ...[
+                _SectionHeader(
+                  title: 'Itinerary',
+                  icon: Icons.map_outlined,
+                  trailing: isOrganiser
+                      ? TextButton(
+                          onPressed: () =>
+                              _showAddItineraryDialog(context, ref, planId),
+                          child: const Text('Add'),
+                        )
+                      : null,
+                ),
+                ref.watch(itineraryProvider(planId)).when(
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (e, _) => Text('Error: $e'),
+                      data: (items) => _ItinerarySection(
+                        items: items,
+                        planId: planId,
+                        isOrganiser: isOrganiser,
+                        ref: ref,
+                      ),
+                    ),
+                const SizedBox(height: 32),
+              ],
             ],
           ),
         );
@@ -228,6 +255,80 @@ class PlanDetailScreen extends ConsumerWidget {
             child: const Text('Save'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showAddItineraryDialog(
+      BuildContext context, WidgetRef ref, String planId) {
+    final titleC = TextEditingController();
+    final locC = TextEditingController();
+    DateTime pickedTime = DateTime.now();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Add stop to itinerary'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleC,
+                decoration: const InputDecoration(labelText: 'Title'),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: locC,
+                decoration:
+                    const InputDecoration(labelText: 'Store/Venue Location'),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                title: Text('Time: ${DateFormat('h:mm a').format(pickedTime)}'),
+                trailing: const Icon(Icons.access_time),
+                onTap: () async {
+                  final time = await showTimePicker(
+                    context: context,
+                    initialTime: TimeOfDay.fromDateTime(pickedTime),
+                  );
+                  if (time != null) {
+                    setDialogState(() {
+                      pickedTime = DateTime(
+                        pickedTime.year,
+                        pickedTime.month,
+                        pickedTime.day,
+                        time.hour,
+                        time.minute,
+                      );
+                    });
+                  }
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
+            TextButton(
+              onPressed: () async {
+                if (titleC.text.isEmpty) return;
+                Navigator.pop(ctx);
+                await ref.read(planNotifierProvider.notifier).addItineraryItem(
+                      planId,
+                      ItineraryItem(
+                        itemId: '',
+                        title: titleC.text.trim(),
+                        location: locC.text.trim(),
+                        time: pickedTime,
+                      ),
+                    );
+              },
+              child: const Text('Add'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -486,6 +587,116 @@ class _PollSection extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _ItinerarySection extends StatelessWidget {
+  final List<ItineraryItem> items;
+  final String planId;
+  final bool isOrganiser;
+  final WidgetRef ref;
+
+  const _ItinerarySection({
+    required this.items,
+    required this.planId,
+    required this.isOrganiser,
+    required this.ref,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Text('No stops added yet.',
+            style:
+                AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
+      );
+    }
+
+    return Column(
+      children: items.map((item) {
+        return Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Dismissible(
+            key: Key(item.itemId),
+            direction: isOrganiser
+                ? DismissDirection.endToStart
+                : DismissDirection.none,
+            background: Container(
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                color: AppColors.error,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.delete_outline, color: Colors.white),
+            ),
+            onDismissed: (_) async {
+              await ref
+                  .read(planNotifierProvider.notifier)
+                  .deleteItineraryItem(planId, item.itemId);
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Checkbox(
+                    value: item.isCompleted,
+                    onChanged: (val) {
+                      if (val != null) {
+                        ref
+                            .read(planNotifierProvider.notifier)
+                            .toggleItineraryItemCompletion(
+                                planId, item.itemId, val);
+                      }
+                    },
+                    activeColor: AppColors.accent,
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.title,
+                          style: AppTextStyles.body.copyWith(
+                            fontWeight: FontWeight.bold,
+                            decoration: item.isCompleted
+                                ? TextDecoration.lineThrough
+                                : null,
+                            color: item.isCompleted
+                                ? AppColors.textSecondary
+                                : AppColors.textPrimary,
+                          ),
+                        ),
+                        if (item.location != null &&
+                            item.location!.isNotEmpty)
+                          Text(
+                            item.location!,
+                            style: AppTextStyles.label,
+                          ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    DateFormat('h:mm a').format(item.time),
+                    style: AppTextStyles.label.copyWith(
+                      color: AppColors.accent,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

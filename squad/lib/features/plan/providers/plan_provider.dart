@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:squad/core/providers.dart';
 import '../models/plan.dart';
 import '../models/expense.dart';
+import '../models/itinerary_item.dart';
 import 'package:squad/core/services/plan_service.dart';
 
 // ─── PlanNotifier — centralised mutation controller ──────────────────────────
@@ -148,6 +149,56 @@ class PlanNotifier extends AsyncNotifier<void> {
     state = const AsyncLoading();
     try {
       await _service.addMemberToPlan(planId, userId);
+      state = const AsyncData(null);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    }
+  }
+
+  // --- Itinerary Mutators ---
+
+  Future<void> addItineraryItem(String planId, ItineraryItem item) async {
+    state = const AsyncLoading();
+    try {
+      await _service.addItineraryItem(planId, item);
+      state = const AsyncData(null);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    }
+  }
+
+  Future<void> updateItineraryItem(String planId, ItineraryItem item) async {
+    state = const AsyncLoading();
+    try {
+      await _service.updateItineraryItem(planId, item);
+      state = const AsyncData(null);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    }
+  }
+
+  Future<void> deleteItineraryItem(String planId, String itemId) async {
+    state = const AsyncLoading();
+    try {
+      await _service.deleteItineraryItem(planId, itemId);
+      state = const AsyncData(null);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    }
+  }
+
+  Future<void> toggleItineraryItemCompletion(
+    String planId,
+    String itemId,
+    bool isCompleted,
+  ) async {
+    state = const AsyncLoading();
+    try {
+      await _service.toggleItineraryItemCompletion(planId, itemId, isCompleted);
       state = const AsyncData(null);
     } catch (e, st) {
       state = AsyncError(e, st);
