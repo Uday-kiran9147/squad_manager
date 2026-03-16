@@ -3,6 +3,7 @@ import 'package:squad/core/providers.dart';
 import '../models/plan.dart';
 import '../models/expense.dart';
 import '../models/itinerary_item.dart';
+import '../models/plan_balance.dart';
 import 'package:squad/core/services/plan_service.dart';
 
 // ─── PlanNotifier — centralised mutation controller ──────────────────────────
@@ -209,4 +210,42 @@ class PlanNotifier extends AsyncNotifier<void> {
 
 final planNotifierProvider =
     AsyncNotifierProvider<PlanNotifier, void>(PlanNotifier.new);
+
+final planBalanceProvider = Provider.family<PlanBalance, String>((ref, planId) {
+  final expenses = ref.watch(expensesProvider(planId)).value ?? [];
+  final currentUserId = ref.watch(currentUserIdProvider);
+
+  if (currentUserId == null) return const PlanBalance();
+
+  double totalOwed = 0.0;
+  double totalOwing = 0.0;
+  final peerBalances = <String, double>{};
+
+  for (final expense in expenses) {
+    if (expense.paidBy == currentUserId) {
+      // Current user paid
+      for (final memberId in expense.splitAmong) {
+        if (memberId == currentUserId) continue;
+        if (!expense.settledBy.contains(memberId)) {
+          totalOwed += expense.perPersonAmount;
+          peerBalances[memberId] =
+              (peerBalances[memberId] ?? 0) + expense.perPersonAmount;
+        }
+      }
+    } else if (expense.splitAmong.contains(currentUserId)) {
+      // Someone else paid, current user owes
+      if (!expense.settledBy.contains(currentUserId)) {
+        totalOwing += expense.perPersonAmount;
+        peerBalances[expense.paidBy] =
+            (peerBalances[expense.paidBy] ?? 0) - expense.perPersonAmount;
+      }
+    }
+  }
+
+  return PlanBalance(
+    totalOwed: totalOwed,
+    totalOwing: totalOwing,
+    peerBalances: peerBalances,
+  );
+});
 

@@ -12,6 +12,7 @@ import 'package:squad/features/plan/models/expense.dart';
 import 'package:squad/features/plan/models/plan.dart';
 import 'package:squad/features/plan/models/poll_option.dart';
 import 'package:squad/features/plan/models/itinerary_item.dart';
+import 'package:squad/features/plan/models/plan_balance.dart';
 import 'package:squad/features/plan/providers/plan_provider.dart';
 
 class PlanDetailScreen extends ConsumerWidget {
@@ -145,15 +146,29 @@ class PlanDetailScreen extends ConsumerWidget {
                 loading: () =>
                     const Center(child: CircularProgressIndicator()),
                 error: (e, _) => Text('Error: $e'),
-                data: (expenses) => _ExpenseSection(
-                  expenses: expenses,
-                  currentUserId: currentUserId,
-                  planId: planId,
-                  planTitle: plan.title,
-                  ref: ref,
-                  members: members,
-                  isOrganiser: isOrganiser,
-                ),
+                data: (expenses) {
+                  final balance = ref.watch(planBalanceProvider(planId));
+                  return Column(
+                    children: [
+                      if (expenses.isNotEmpty) ...[
+                        _BalanceSummary(
+                          balance: balance,
+                          members: members,
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                      _ExpenseSection(
+                        expenses: expenses,
+                        currentUserId: currentUserId,
+                        planId: planId,
+                        planTitle: plan.title,
+                        ref: ref,
+                        members: members,
+                        isOrganiser: isOrganiser,
+                      ),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 20),
               if (plan.status == PlanStatus.confirmed ||
@@ -893,6 +908,98 @@ class _ExpenseSection extends StatelessWidget {
           ),
         );
       }).toList(),
+    );
+  }
+}
+
+class _BalanceSummary extends StatelessWidget {
+  final PlanBalance balance;
+  final List<UserModel>? members;
+
+  const _BalanceSummary({
+    required this.balance,
+    required this.members,
+  });
+
+  String _memberName(String uid) {
+    if (members == null) return 'Member ${uid.substring(0, 4)}';
+    final match = members!.where((m) => m.uid == uid).firstOrNull;
+    return match?.displayName?.isNotEmpty == true
+        ? match!.displayName!
+        : 'Member ${uid.substring(0, 4)}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final net = balance.netBalance;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: const Border(
+          left: BorderSide(color: AppColors.accent, width: 4),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('NET BALANCE', style: AppTextStyles.label),
+              Text(
+                '${net >= 0 ? "+" : "-"} Rs.${net.abs().toStringAsFixed(2)}',
+                style: AppTextStyles.h2.copyWith(
+                  color: net >= 0 ? AppColors.success : AppColors.error,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            net >= 0 ? 'People owe you money' : 'You owe money to others',
+            style: AppTextStyles.body.copyWith(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          if (balance.peerBalances.isNotEmpty) ...[
+            const Divider(height: 24, color: AppColors.divider),
+            ...balance.peerBalances.entries.map((entry) {
+              final peerId = entry.key;
+              final peerBal = entry.value;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(_memberName(peerId), style: AppTextStyles.body),
+                    Text(
+                      '${peerBal >= 0 ? "+" : "-"} Rs.${peerBal.abs().toStringAsFixed(2)}',
+                      style: AppTextStyles.mono.copyWith(
+                        color:
+                            peerBal >= 0 ? AppColors.success : AppColors.error,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ],
+      ),
     );
   }
 }
