@@ -206,6 +206,17 @@ class PlanNotifier extends AsyncNotifier<void> {
       rethrow;
     }
   }
+
+  Future<void> updateRSVP(String planId, String userId, String status) async {
+    state = const AsyncLoading();
+    try {
+      await _service.updateRSVP(planId, userId, status);
+      state = const AsyncData(null);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    }
+  }
 }
 
 final planNotifierProvider =

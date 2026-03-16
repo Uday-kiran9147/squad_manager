@@ -107,6 +107,13 @@ class PlanDetailScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             children: [
               _PlanStatusSection(plan: plan),
+              const SizedBox(height: 12),
+              _RSVPSection(
+                plan: plan,
+                currentUserId: currentUserId,
+                members: members,
+                ref: ref,
+              ),
               const SizedBox(height: 20),
               _SectionHeader(
                 title: 'Date Poll',
@@ -440,6 +447,168 @@ class _PlanStatusSection extends StatelessWidget {
             ),
           ]),
         ],
+      ),
+    );
+  }
+}
+
+class _RSVPSection extends StatelessWidget {
+  final Plan plan;
+  final String? currentUserId;
+  final List<UserModel>? members;
+  final WidgetRef ref;
+
+  const _RSVPSection({
+    required this.plan,
+    required this.currentUserId,
+    required this.members,
+    required this.ref,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (plan.status != PlanStatus.confirmed) return const SizedBox.shrink();
+
+    final rsvps = plan.rsvps;
+    final goingCount = rsvps.values.where((s) => s == 'going').length;
+    final maybeCount = rsvps.values.where((s) => s == 'maybe').length;
+    final notGoingCount = rsvps.values.where((s) => s == 'declined').length;
+    final myStatus = currentUserId != null ? rsvps[currentUserId] : null;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.event_available, color: AppColors.success, size: 20),
+              const SizedBox(width: 8),
+              Text('RSVPs', style: AppTextStyles.h2),
+              const Spacer(),
+              Text(
+                '$goingCount Going · $maybeCount Maybe · $notGoingCount Not Going',
+                style: AppTextStyles.label.copyWith(color: AppColors.textSecondary),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _RSVPButton(
+                  label: 'Going',
+                  isSelected: myStatus == 'going',
+                  color: AppColors.success,
+                  onTap: () => _updateRSVP('going'),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: _RSVPButton(
+                  label: 'Maybe',
+                  isSelected: myStatus == 'maybe',
+                  color: AppColors.warning,
+                  onTap: () => _updateRSVP('maybe'),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: _RSVPButton(
+                  label: 'No',
+                  isSelected: myStatus == 'declined',
+                  color: AppColors.error,
+                  onTap: () => _updateRSVP('declined'),
+                ),
+              ),
+            ],
+          ),
+          if (members != null && rsvps.isNotEmpty) ...[
+            const Divider(height: 32),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: members!.map((user) {
+                final status = rsvps[user.uid];
+                if (status == null) return const SizedBox.shrink();
+
+                final statusColor = status == 'going'
+                    ? AppColors.success
+                    : (status == 'maybe' ? AppColors.warning : AppColors.error);
+
+                return Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: statusColor.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Text(
+                    user.displayName ?? 'Friend',
+                    style: AppTextStyles.label.copyWith(
+                      color: statusColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _updateRSVP(String status) {
+    if (currentUserId == null) return;
+    ref.read(planNotifierProvider.notifier).updateRSVP(plan.planId, currentUserId!, status);
+  }
+}
+
+class _RSVPButton extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _RSVPButton({
+    required this.label,
+    required this.isSelected,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? color : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: isSelected ? color : AppColors.divider),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: AppTextStyles.body.copyWith(
+              color: isSelected ? Colors.white : AppColors.textPrimary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
       ),
     );
   }

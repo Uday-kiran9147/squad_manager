@@ -366,6 +366,14 @@ class PlanService {
         .update({'isCompleted': isCompleted});
   }
 
+  // Update RSVP Status
+  Future<void> updateRSVP(String planId, String userId, String status) async {
+    await _firestore.collection(_plansCollection).doc(planId).update({
+      'rsvps.$userId': status,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   // Delete Plan
   Future<void> deletePlan(String planId) async {
     await _firestore.collection(_plansCollection).doc(planId).delete();

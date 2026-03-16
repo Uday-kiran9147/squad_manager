@@ -23,6 +23,7 @@ class Plan with _$Plan {
     @TimestampConverter() required DateTime updatedAt,
     @TimestampConverter() DateTime? pollClosesAt,
     List<String>? coOrganiserIds,
+    @Default({}) Map<String, String> rsvps,
   }) = _Plan;
 
   factory Plan.fromJson(Map<String, dynamic> json) => _$PlanFromJson(json);
