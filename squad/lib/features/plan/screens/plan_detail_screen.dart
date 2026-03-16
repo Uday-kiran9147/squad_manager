@@ -498,6 +498,15 @@ class _RSVPSection extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 6),
+          Text(
+            '"Répondez s\'il vous plaît" - which translates to "Please respond" or "Please reply"',
+            style: AppTextStyles.label.copyWith(
+              color: AppColors.textSecondary,
+              fontStyle: FontStyle.italic,
+              fontSize: 11,
+            ),
+          ),
           const SizedBox(height: 16),
           Row(
             children: [
