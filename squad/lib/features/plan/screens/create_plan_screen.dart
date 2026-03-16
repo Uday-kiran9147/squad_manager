@@ -231,8 +231,19 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
                           ),
                         ],
                       ),
-                    );
+                    ); 
                   },
+                ),
+              const SizedBox(height: 12),
+              if (_dateOptions.isNotEmpty)
+                TextButton.icon(
+                  onPressed: _addDateOption,
+                  icon: const Icon(Icons.add_circle_outline, size: 20),
+                  label: const Text('Add Another Option'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.accent,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
                 ),
               const SizedBox(height: 48),
               ElevatedButton(

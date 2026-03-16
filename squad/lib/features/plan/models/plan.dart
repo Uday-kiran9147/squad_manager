@@ -21,6 +21,8 @@ class Plan with _$Plan {
     required List<String> memberIds,
     @TimestampConverter() required DateTime createdAt,
     @TimestampConverter() required DateTime updatedAt,
+    @TimestampConverter() DateTime? pollClosesAt,
+    List<String>? coOrganiserIds,
   }) = _Plan;
 
   factory Plan.fromJson(Map<String, dynamic> json) => _$PlanFromJson(json);

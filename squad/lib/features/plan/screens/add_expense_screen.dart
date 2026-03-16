@@ -8,6 +8,8 @@ import 'package:squad/core/theme/app_text_styles.dart';
 import 'package:squad/core/utils/validators.dart';
 import 'package:squad/features/plan/providers/plan_provider.dart';
 
+import 'package:squad/features/plan/models/expense.dart';
+
 class AddExpenseScreen extends ConsumerStatefulWidget {
   final String planId;
   const AddExpenseScreen({super.key, required this.planId});
@@ -24,6 +26,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   String? _paidBy;
   List<String> _splitAmong = [];
   bool _initialized = false;
+  ExpenseCategory _category = ExpenseCategory.other;
 
   @override
   void dispose() {
@@ -60,11 +63,12 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
 
     try {
       await ref.read(planNotifierProvider.notifier).addExpense(
-            widget.planId,
-            _titleController.text.trim(),
-            amount,
-            _paidBy!,
-            _splitAmong,
+            planId: widget.planId,
+            title: _titleController.text.trim(),
+            amount: amount,
+            paidBy: _paidBy!,
+            splitAmong: _splitAmong,
+            category: _category,
           );
       if (mounted) context.pop();
     } catch (e) {
@@ -134,6 +138,23 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                     ),
                     validator: Validators.validateAmount,
                   ),
+                   const SizedBox(height: 16),
+                  Text('Category:', style: AppTextStyles.h2),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<ExpenseCategory>(
+                    initialValue: _category,
+                    items: ExpenseCategory.values.map((cat) {
+                      return DropdownMenuItem(
+                        value: cat,
+                        child: Text(cat.name.toUpperCase()),
+                      );
+                    }).toList(),
+                    onChanged: (val) {
+                      if (val != null) setState(() => _category = val);
+                    },
+                    decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12)),
+                  ),
                   const SizedBox(height: 24),
                   Text('Paid by:', style: AppTextStyles.h2),
                   const SizedBox(height: 8),
@@ -144,7 +165,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                         value: id,
                         child: Text(memberLabel(id, members)),
                       );
-                    }).toList(),
+                    }).toList(), 
                     onChanged: (val) => setState(() => _paidBy = val),
                     decoration: const InputDecoration(
                         contentPadding: EdgeInsets.symmetric(horizontal: 12)),

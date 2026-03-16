@@ -4,6 +4,8 @@ import 'package:squad/core/utils/converters.dart';
 part 'expense.freezed.dart';
 part 'expense.g.dart';
 
+enum ExpenseCategory { food, transport, tickets, stay, other }
+
 @freezed
 class Expense with _$Expense {
   const factory Expense({
@@ -14,6 +16,7 @@ class Expense with _$Expense {
     required List<String> splitAmong,
     required double perPersonAmount,
     required List<String> settledBy,
+    @Default(ExpenseCategory.other) ExpenseCategory category,
     @TimestampConverter() required DateTime createdAt,
   }) = _Expense;
 

@@ -1,4 +1,4 @@
-﻿import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
 
 class UserService {
@@ -11,8 +11,13 @@ class UserService {
 
   Future<UserModel?> getUser(String uid) async {
     final doc = await _firestore.collection(_collection).doc(uid).get();
-    if (doc.exists) {
-      return UserModel.fromJson(doc.data()!);
+    final data = doc.data();
+    if (doc.exists && data != null) {
+      try {
+        return UserModel.fromJson(data);
+      } catch (e) {
+        return null;
+      }
     }
     return null;
   }
@@ -22,7 +27,17 @@ class UserService {
         .collection(_collection)
         .doc(uid)
         .snapshots()
-        .map((doc) => doc.exists ? UserModel.fromJson(doc.data()!) : null);
+        .map((doc) {
+      final data = doc.data();
+      if (doc.exists && data != null) {
+        try {
+          return UserModel.fromJson(data);
+        } catch (e) {
+          return null;
+        }
+      }
+      return null;
+    });
   }
 
   Future<void> updateUser(String uid, Map<String, dynamic> data) async {
@@ -32,16 +47,21 @@ class UserService {
   Future<List<UserModel>> getUsers(List<String> uids) async {
     if (uids.isEmpty) return [];
     
-    // Firestore "in" query limited to 10. For now, we'll fetch one by one or chunk if needed.
-    // For Squad, usually member count is small.
     final List<UserModel> users = [];
     for (int i = 0; i < uids.length; i += 10) {
       final chunk = uids.sublist(i, i + 10 > uids.length ? uids.length : i + 10);
       final snapshot = await _firestore
           .collection(_collection)
-          .where('uid', whereIn: chunk)
+          .where(FieldPath.documentId, whereIn: chunk)
           .get();
-      users.addAll(snapshot.docs.map((doc) => UserModel.fromJson(doc.data())));
+      
+      for (final doc in snapshot.docs) {
+        try {
+          users.add(UserModel.fromJson(doc.data()));
+        } catch (e) {
+          // Skip malformed user data
+        }
+      }
     }
     return users;
   }

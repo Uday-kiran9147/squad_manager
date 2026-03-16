@@ -1,42 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:squad/core/providers.dart';
 import '../models/plan.dart';
-import '../models/poll_option.dart';
 import '../models/expense.dart';
-import '../services/plan_service.dart';
-
-final planServiceProvider = Provider((ref) => PlanService());
-
-// ─── Read-only stream/future providers ───────────────────────────────────────
-
-/// Live list of plans for the current user.
-final plansProvider =
-    StreamProvider.autoDispose.family<List<Plan>, String>((ref, userId) {
-  return ref.watch(planServiceProvider).getPlansForUser(userId);
-});
-
-/// Live single plan (used in detail screen).
-final planStreamProvider =
-    StreamProvider.autoDispose.family<Plan?, String>((ref, planId) {
-  return ref.watch(planServiceProvider).watchPlanById(planId);
-});
-
-/// One-shot plan fetch (used in invite/add-expense screens).
-final planProvider =
-    FutureProvider.autoDispose.family<Plan?, String>((ref, planId) {
-  return ref.watch(planServiceProvider).getPlanById(planId);
-});
-
-/// Live poll options for a plan.
-final pollOptionsProvider =
-    StreamProvider.autoDispose.family<List<PollOption>, String>((ref, planId) {
-  return ref.watch(planServiceProvider).getPollOptionsForPlan(planId);
-});
-
-/// Live expenses for a plan.
-final expensesProvider =
-    StreamProvider.autoDispose.family<List<Expense>, String>((ref, planId) {
-  return ref.watch(planServiceProvider).getExpensesForPlan(planId);
-});
+import 'package:squad/core/services/plan_service.dart';
 
 // ─── PlanNotifier — centralised mutation controller ──────────────────────────
 
@@ -124,7 +90,7 @@ class PlanNotifier extends AsyncNotifier<void> {
       String planId, String optionId, String userId) async {
     state = const AsyncLoading();
     try {
-      await _service.voteOnOption(planId, optionId, userId);
+      await _service.toggleVote(planId, optionId, userId);
       state = const AsyncData(null);
     } catch (e, st) {
       state = AsyncError(e, st);
@@ -133,16 +99,18 @@ class PlanNotifier extends AsyncNotifier<void> {
   }
 
   /// Adds a new expense to the plan.
-  Future<void> addExpense(
-    String planId,
-    String title,
-    double amount,
-    String paidBy,
-    List<String> splitAmong,
-  ) async {
+  Future<void> addExpense({
+    required String planId,
+    required String title,
+    required double amount,
+    required String paidBy,
+    required List<String> splitAmong,
+    required ExpenseCategory category,
+  }) async {
     state = const AsyncLoading();
     try {
-      await _service.addExpense(planId, title, amount, paidBy, splitAmong);
+      await _service.addExpense(
+          planId, title, amount, paidBy, splitAmong, category);
       state = const AsyncData(null);
     } catch (e, st) {
       state = AsyncError(e, st);

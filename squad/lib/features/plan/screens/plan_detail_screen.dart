@@ -426,11 +426,14 @@ class _PollSection extends StatelessWidget {
             },
             child: GestureDetector(
               onTap: plan.status == PlanStatus.polling && currentUserId != null
-                  ? () async {
-                      await ref
-                          .read(planNotifierProvider.notifier)
-                          .voteOnOption(planId, option.optionId, currentUserId!);
-                    }
+                    ? () async {
+                        if (currentUserId != null) {
+                          await ref
+                              .read(planNotifierProvider.notifier)
+                              .voteOnOption(
+                                  planId, option.optionId, currentUserId!);
+                        }
+                      }
                   : null,
               child: Container(
                 padding: const EdgeInsets.symmetric(
@@ -623,10 +626,12 @@ class _ExpenseSection extends StatelessWidget {
                           GestureDetector(
                             onTap: () async {
                               try {
-                                await ref
-                                    .read(planNotifierProvider.notifier)
-                                    .markExpenseSettled(
-                                        planId, expense.expenseId, currentUserId!);
+                                if (currentUserId != null) {
+                                  await ref
+                                      .read(planNotifierProvider.notifier)
+                                      .markExpenseSettled(
+                                          planId, expense.expenseId, currentUserId!);
+                                }
 
                                 // Look up payer's UPI ID from the members list
                                 final payer = members?.where((m) => m.uid == expense.paidBy).firstOrNull;

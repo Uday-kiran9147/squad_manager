@@ -1,7 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/plan.dart';
-import '../models/poll_option.dart';
-import '../models/expense.dart';
+import '../../features/plan/models/plan.dart';
+import '../../features/plan/models/poll_option.dart';
+import '../../features/plan/models/expense.dart';
 
 class PlanService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -12,7 +13,12 @@ class PlanService {
   // Create Plan
   Future<String> createPlan(Plan plan) async {
     final docRef = _firestore.collection(_plansCollection).doc();
-    final newPlan = plan.copyWith(planId: docRef.id);
+    final newPlan = plan.copyWith(
+      planId: docRef.id,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      pollClosesAt: DateTime.now().add(const Duration(hours: 48)),
+    );
     await docRef.set(newPlan.toJson());
     return docRef.id;
   }
@@ -25,15 +31,30 @@ class PlanService {
         .orderBy('updatedAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => Plan.fromJson(doc.data()))
+            .map((doc) {
+              try {
+                final data = doc.data();
+                return Plan.fromJson(data);
+              } catch (e, stack) {
+                debugPrint('Plan parsing error: $e\n$stack');
+                return null;
+              }
+            })
+            .whereType<Plan>()
             .toList());
   }
 
   // Get Plan by ID
   Future<Plan?> getPlanById(String planId) async {
     final doc = await _firestore.collection(_plansCollection).doc(planId).get();
-    if (doc.exists) {
-      return Plan.fromJson(doc.data()!);
+    final data = doc.data();
+    if (doc.exists && data != null) {
+      try {
+        return Plan.fromJson(data);
+      } catch (e, stack) {
+        debugPrint('Plan fetch error: $e\n$stack');
+        return null;
+      }
     }
     return null;
   }
@@ -44,8 +65,14 @@ class PlanService {
         .doc(planId)
         .snapshots()
         .map((doc) {
-          if (doc.exists) {
-            return Plan.fromJson(doc.data()!);
+          final data = doc.data();
+          if (doc.exists && data != null) {
+            try {
+              return Plan.fromJson(data);
+            } catch (e, stack) {
+              debugPrint('Plan watch error: $e\n$stack');
+              return null;
+            }
           }
           return null;
         });
@@ -78,16 +105,19 @@ class PlanService {
         .orderBy('dateTime')
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => PollOption.fromJson(doc.data()))
+            .map((doc) {
+              try {
+                return PollOption.fromJson(doc.data());
+              } catch (e) {
+                return null;
+              }
+            })
+            .whereType<PollOption>()
             .toList());
   }
 
   // Vote on Poll Option
-  Future<void> voteOnOption(
-    String planId,
-    String optionId,
-    String userId,
-  ) async {
+  Future<void> toggleVote(String planId, String optionId, String userId) async {
     final optionRef = _firestore
         .collection(_plansCollection)
         .doc(planId)
@@ -96,17 +126,21 @@ class PlanService {
 
     await _firestore.runTransaction((transaction) async {
       final doc = await transaction.get(optionRef);
-      if (doc.exists) {
-        final option = PollOption.fromJson(doc.data() as Map<String, dynamic>);
+      final data = doc.data();
+      if (doc.exists && data != null) {
+        final option = PollOption.fromJson(data);
         final voterIds = List<String>.from(option.voterIds);
 
-        if (!voterIds.contains(userId)) {
+        if (voterIds.contains(userId)) {
+          voterIds.remove(userId);
+        } else {
           voterIds.add(userId);
-          transaction.update(optionRef, {
-            'voterIds': voterIds,
-            'voteCount': voterIds.length,
-          });
         }
+        
+        transaction.update(optionRef, {
+          'voterIds': voterIds,
+          'voteCount': voterIds.length,
+        });
       }
     });
   }
@@ -121,7 +155,7 @@ class PlanService {
         .collection(_plansCollection)
         .doc(planId)
         .update({
-          'status': PlanStatus.confirmed.toString().split('.').last,
+          'status': PlanStatus.confirmed.name,
           'confirmedDate': Timestamp.fromDate(confirmedDate),
           'confirmedVenue': confirmedVenue,
           'updatedAt': FieldValue.serverTimestamp(),
@@ -135,6 +169,7 @@ class PlanService {
     double amount,
     String paidBy,
     List<String> splitAmong,
+    ExpenseCategory category,
   ) async {
     final expensesRef = _firestore
         .collection(_plansCollection)
@@ -152,6 +187,7 @@ class PlanService {
       splitAmong: splitAmong,
       perPersonAmount: perPersonAmount,
       settledBy: [],
+      category: category,
       createdAt: DateTime.now(),
     );
 
@@ -168,7 +204,14 @@ class PlanService {
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => Expense.fromJson(doc.data()))
+            .map((doc) {
+              try {
+                return Expense.fromJson(doc.data());
+              } catch (e) {
+                return null;
+              }
+            })
+            .whereType<Expense>()
             .toList());
   }
 
@@ -186,8 +229,9 @@ class PlanService {
 
     await _firestore.runTransaction((transaction) async {
       final doc = await transaction.get(expenseRef);
-      if (doc.exists) {
-        final expense = Expense.fromJson(doc.data() as Map<String, dynamic>);
+      final data = doc.data();
+      if (doc.exists && data != null) {
+        final expense = Expense.fromJson(data);
         final settledBy = List<String>.from(expense.settledBy);
 
         if (!settledBy.contains(userId)) {
@@ -196,6 +240,26 @@ class PlanService {
         }
       }
     });
+  }
+
+  // Delete Expense
+  Future<void> deleteExpense(String planId, String expenseId) async {
+    await _firestore
+        .collection(_plansCollection)
+        .doc(planId)
+        .collection(_expensesSubcollection)
+        .doc(expenseId)
+        .delete();
+  }
+
+  // Delete Poll Option
+  Future<void> deletePollOption(String planId, String optionId) async {
+    await _firestore
+        .collection(_plansCollection)
+        .doc(planId)
+        .collection(_pollOptionsSubcollection)
+        .doc(optionId)
+        .delete();
   }
 
   // Add Member to Plan
@@ -215,7 +279,7 @@ class PlanService {
         .collection(_plansCollection)
         .doc(planId)
         .update({
-          'status': PlanStatus.completed.toString().split('.').last,
+          'status': PlanStatus.completed.name,
           'updatedAt': FieldValue.serverTimestamp(),
         });
   }
@@ -236,76 +300,8 @@ class PlanService {
     await _firestore.collection(_plansCollection).doc(planId).update(data);
   }
 
-  // Delete Plan (removes plan document; sub-collections handled separately)
+  // Delete Plan
   Future<void> deletePlan(String planId) async {
-    // Delete poll options sub-collection
-    final pollOptionsSnap = await _firestore
-        .collection(_plansCollection)
-        .doc(planId)
-        .collection(_pollOptionsSubcollection)
-        .get();
-    for (final doc in pollOptionsSnap.docs) {
-      await doc.reference.delete();
-    }
-
-    // Delete expenses sub-collection
-    final expensesSnap = await _firestore
-        .collection(_plansCollection)
-        .doc(planId)
-        .collection(_expensesSubcollection)
-        .get();
-    for (final doc in expensesSnap.docs) {
-      await doc.reference.delete();
-    }
-
-    // Delete the plan document itself
     await _firestore.collection(_plansCollection).doc(planId).delete();
-  }
-
-  // Delete Expense
-  Future<void> deleteExpense(String planId, String expenseId) async {
-    await _firestore
-        .collection(_plansCollection)
-        .doc(planId)
-        .collection(_expensesSubcollection)
-        .doc(expenseId)
-        .delete();
-  }
-
-  // Update Expense (editable fields: title and amount)
-  Future<void> updateExpense(
-    String planId,
-    String expenseId, {
-    String? title,
-    double? amount,
-    List<String>? splitAmong,
-  }) async {
-    final data = <String, dynamic>{};
-    if (title != null) data['title'] = title;
-    if (amount != null) {
-      data['amount'] = amount;
-      // Recalculate per-person amount if splitAmong provided
-      if (splitAmong != null && splitAmong.isNotEmpty) {
-        data['splitAmong'] = splitAmong;
-        data['perPersonAmount'] = amount / splitAmong.length;
-      }
-    }
-    if (data.isEmpty) return;
-    await _firestore
-        .collection(_plansCollection)
-        .doc(planId)
-        .collection(_expensesSubcollection)
-        .doc(expenseId)
-        .update(data);
-  }
-
-  // Delete Poll Option
-  Future<void> deletePollOption(String planId, String optionId) async {
-    await _firestore
-        .collection(_plansCollection)
-        .doc(planId)
-        .collection(_pollOptionsSubcollection)
-        .doc(optionId)
-        .delete();
   }
 }
