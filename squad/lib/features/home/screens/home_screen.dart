@@ -6,6 +6,7 @@ import 'package:squad/core/providers.dart';
 import 'package:squad/core/theme/app_colors.dart';
 import 'package:squad/core/theme/app_text_styles.dart';
 import 'package:squad/features/plan/models/plan.dart';
+import 'package:squad/core/widgets/feedback_sheet.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -26,6 +27,11 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text('Squad', style: AppTextStyles.h1),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.favorite_border_rounded),
+            onPressed: () => FeedbackSheet.show(context),
+            tooltip: 'Feedback',
+          ),
           IconButton(
             icon: const Icon(Icons.account_circle_outlined),
             onPressed: () => context.push('/profile'),

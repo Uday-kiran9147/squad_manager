@@ -9,6 +9,7 @@ import 'package:squad/features/plan/models/plan.dart';
 import 'package:squad/features/plan/models/poll_option.dart';
 import 'package:squad/features/plan/models/expense.dart';
 import 'package:squad/features/plan/models/itinerary_item.dart';
+import 'package:squad/core/services/feedback_service.dart';
 
 final firebaseAuthProvider = Provider<FirebaseAuth>((ref) => FirebaseAuth.instance);
 
@@ -72,3 +73,5 @@ final itineraryProvider =
     StreamProvider.family<List<ItineraryItem>, String>((ref, planId) {
   return ref.watch(planServiceProvider).getItineraryForPlan(planId);
 });
+
+final feedbackServiceProvider = Provider<FeedbackService>((ref) => FeedbackService());

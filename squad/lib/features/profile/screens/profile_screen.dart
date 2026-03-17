@@ -6,6 +6,7 @@ import 'package:squad/core/theme/app_colors.dart';
 import 'package:squad/core/theme/app_text_styles.dart';
 import 'package:squad/core/utils/validators.dart';
 import 'package:squad/features/profile/providers/profile_provider.dart';
+import 'package:squad/core/widgets/feedback_sheet.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -228,6 +229,60 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         : const Text('Save Profile',
                             style: TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                  const SizedBox(height: 32),
+                  const SizedBox(height: 32),
+                  const Divider(color: AppColors.divider),
+                  const SizedBox(height: 24),
+                  _buildFieldLabel('How\'s your experience?'),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.surface,
+                          AppColors.surface.withValues(alpha: 0.5),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: AppColors.accent.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'We building Squad for you and your friends.',
+                          style: AppTextStyles.body.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Share your thoughts and help us make it better together.',
+                          style: AppTextStyles.body.copyWith(
+                            color: AppColors.textSecondary,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () => FeedbackSheet.show(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.accent.withValues(alpha: 0.1),
+                            foregroundColor: AppColors.accent,
+                            elevation: 0,
+                            side: const BorderSide(color: AppColors.accent),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text('Share Feedback'),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 32),
                   const Divider(color: AppColors.divider),
