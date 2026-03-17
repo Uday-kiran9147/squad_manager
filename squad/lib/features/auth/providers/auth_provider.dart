@@ -60,6 +60,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  Future<void> signInAnonymously(String displayName) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _authService.signInAnonymously(displayName);
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
   Future<void> signOut() async {
     state = state.copyWith(isLoading: true, error: null);
     try {

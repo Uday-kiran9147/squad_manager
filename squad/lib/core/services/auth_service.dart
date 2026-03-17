@@ -110,6 +110,25 @@ class AuthService {
     }
   }
 
+  /// Sign in anonymously (for guest users)
+  Future<UserCredential> signInAnonymously(String displayName) async {
+    try {
+      final userCredential = await _auth.signInAnonymously();
+      if (userCredential.user != null) {
+        await userCredential.user!.updateDisplayName(displayName);
+        // Refresh the user object after updating display name
+        await userCredential.user!.reload();
+        final updatedUser = _auth.currentUser;
+        if (updatedUser != null) {
+          await _updateUserData(updatedUser);
+        }
+      }
+      return userCredential;
+    } catch (e) {
+      throw _toAuthException(e);
+    }
+  }
+
   /// Sign out current user
   Future<void> signOut() async {
     try {

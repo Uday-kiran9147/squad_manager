@@ -5,6 +5,7 @@ import 'package:squad/core/providers.dart';
 import 'package:squad/core/theme/app_colors.dart';
 import 'package:squad/core/theme/app_text_styles.dart';
 import 'package:squad/features/plan/providers/plan_provider.dart';
+import 'package:squad/features/auth/providers/auth_provider.dart';
 
 class InviteHandlerScreen extends ConsumerStatefulWidget {
   final String planId;
@@ -40,6 +41,49 @@ class _InviteHandlerScreenState extends ConsumerState<InviteHandlerScreen> {
         );
       }
     }
+  }
+
+  Future<void> _continueAsGuest() async {
+    final name = await _showGuestNameDialog();
+    if (name == null || name.isEmpty) return;
+
+    try {
+      await ref.read(authNotifierProvider.notifier).signInAnonymously(name);
+      await _joinPlan();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Error joining as guest: $e'),
+              backgroundColor: AppColors.error),
+        );
+      }
+    }
+  }
+
+  Future<String?> _showGuestNameDialog() async {
+    String name = '';
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Enter your name'),
+        content: TextField(
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'Your name'),
+          onChanged: (value) => name = value,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, name),
+            child: const Text('Continue'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -110,6 +154,14 @@ class _InviteHandlerScreenState extends ConsumerState<InviteHandlerScreen> {
                           ? const CircularProgressIndicator(
                               color: Colors.white)
                           : const Text('Join Squad Plan'),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: isLoading ? null : _continueAsGuest,
+                      child: const Text('Continue as Guest'),
                     ),
                   ),
                   TextButton(
