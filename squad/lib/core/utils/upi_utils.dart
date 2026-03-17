@@ -1,4 +1,4 @@
-﻿import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class UpiUtils {
   static String buildUpiLink({
@@ -26,9 +26,12 @@ class UpiUtils {
     );
     
     final uri = Uri.parse(link);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
+    try {
+      final success = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!success) {
+        throw 'Could not launch UPI app. Please ensure you have a UPI app installed.';
+      }
+    } catch (_) {
       throw 'Could not launch UPI app. Please ensure you have a UPI app installed.';
     }
   }
