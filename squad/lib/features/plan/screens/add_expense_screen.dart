@@ -43,7 +43,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     _paidBy = memberIds.contains(currentUid) ? currentUid : memberIds.first;
   }
 
-  Future<void> _submit() async {
+  Future<void> _submit(List<UserModel>? members) async {
     if (!_formKey.currentState!.validate()) return;
     if (_paidBy == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -51,6 +51,23 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       );
       return;
     }
+
+    final payer = members?.where((m) => m.uid == _paidBy).firstOrNull;
+    if (payer == null || payer.upiId == null || payer.upiId!.trim().isEmpty) {
+      final isCurrentUser = payer?.uid == ref.read(currentUserIdProvider);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isCurrentUser
+                ? 'You must add a UPI ID in your profile before adding an expense.'
+                : '${payer?.displayName ?? 'The selected user'} must have a UPI ID to be added as a payer.',
+          ),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
     if (_splitAmong.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select at least one person to split with')),
@@ -199,7 +216,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                   ),
                   const SizedBox(height: 32),
                   ElevatedButton(
-                    onPressed: isLoading ? null : _submit,
+                    onPressed: isLoading ? null : () => _submit(members),
                     child: isLoading
                         ? const SizedBox(
                             height: 20,
