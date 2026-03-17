@@ -15,6 +15,7 @@ class Expense with _$Expense {
     required String paidBy,
     required List<String> splitAmong,
     required double perPersonAmount,
+    @Default({}) Map<String, double> splitAmounts,
     required List<String> settledBy,
     @Default(ExpenseCategory.other) ExpenseCategory category,
     @TimestampConverter() required DateTime createdAt,

@@ -108,11 +108,19 @@ class PlanNotifier extends AsyncNotifier<void> {
     required String paidBy,
     required List<String> splitAmong,
     required ExpenseCategory category,
+    Map<String, double>? splitAmounts,
   }) async {
     state = const AsyncLoading();
     try {
       await _service.addExpense(
-          planId, title, amount, paidBy, splitAmong, category);
+        planId: planId,
+        title: title,
+        amount: amount,
+        paidBy: paidBy,
+        splitAmong: splitAmong,
+        category: category,
+        splitAmounts: splitAmounts,
+      );
       state = const AsyncData(null);
     } catch (e, st) {
       state = AsyncError(e, st);
@@ -238,17 +246,18 @@ final planBalanceProvider = Provider.family<PlanBalance, String>((ref, planId) {
       for (final memberId in expense.splitAmong) {
         if (memberId == currentUserId) continue;
         if (!expense.settledBy.contains(memberId)) {
-          totalOwed += expense.perPersonAmount;
-          peerBalances[memberId] =
-              (peerBalances[memberId] ?? 0) + expense.perPersonAmount;
+          final share = expense.splitAmounts[memberId] ?? expense.perPersonAmount;
+          totalOwed += share;
+          peerBalances[memberId] = (peerBalances[memberId] ?? 0) + share;
         }
       }
     } else if (expense.splitAmong.contains(currentUserId)) {
       // Someone else paid, current user owes
       if (!expense.settledBy.contains(currentUserId)) {
-        totalOwing += expense.perPersonAmount;
+        final share = expense.splitAmounts[currentUserId] ?? expense.perPersonAmount;
+        totalOwing += share;
         peerBalances[expense.paidBy] =
-            (peerBalances[expense.paidBy] ?? 0) - expense.perPersonAmount;
+            (peerBalances[expense.paidBy] ?? 0) - share;
       }
     }
   }

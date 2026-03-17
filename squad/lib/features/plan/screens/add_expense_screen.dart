@@ -10,6 +10,8 @@ import 'package:squad/features/plan/providers/plan_provider.dart';
 
 import 'package:squad/features/plan/models/expense.dart';
 
+enum SplitMode { equal, exact }
+
 class AddExpenseScreen extends ConsumerStatefulWidget {
   final String planId;
   const AddExpenseScreen({super.key, required this.planId});
@@ -27,11 +29,16 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   List<String> _splitAmong = [];
   bool _initialized = false;
   ExpenseCategory _category = ExpenseCategory.other;
+  SplitMode _splitMode = SplitMode.equal;
+  final Map<String, TextEditingController> _exactAmountControllers = {};
 
   @override
   void dispose() {
     _titleController.dispose();
     _amountController.dispose();
+    for (var controller in _exactAmountControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -41,6 +48,19 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     _splitAmong = List.from(memberIds);
     final currentUid = ref.read(currentUserIdProvider);
     _paidBy = memberIds.contains(currentUid) ? currentUid : memberIds.first;
+
+    for (var id in memberIds) {
+      _exactAmountControllers[id] = TextEditingController();
+    }
+  }
+
+  void _distributeEqually() {
+    final total = double.tryParse(_amountController.text) ?? 0.0;
+    if (total <= 0 || _splitAmong.isEmpty) return;
+    final share = total / _splitAmong.length;
+    for (var id in _splitAmong) {
+      _exactAmountControllers[id]?.text = share.toStringAsFixed(2);
+    }
   }
 
   Future<void> _submit(List<UserModel>? members) async {
@@ -75,17 +95,40 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       return;
     }
 
-    final amount = double.tryParse(_amountController.text.trim());
-    if (amount == null) return;
+    final totalAmount = double.tryParse(_amountController.text.trim());
+    if (totalAmount == null) return;
+
+    Map<String, double>? splitAmounts;
+    if (_splitMode == SplitMode.exact) {
+      splitAmounts = {};
+      double runningTotal = 0;
+      for (var id in _splitAmong) {
+        final val = double.tryParse(_exactAmountControllers[id]?.text ?? '0') ?? 0;
+        splitAmounts[id] = val;
+        runningTotal += val;
+      }
+
+      if ((runningTotal - totalAmount).abs() > 0.1) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Individual shares (Rs.${runningTotal.toStringAsFixed(2)}) must sum up to the total (Rs.${totalAmount.toStringAsFixed(2)})'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+    }
 
     try {
       await ref.read(planNotifierProvider.notifier).addExpense(
             planId: widget.planId,
             title: _titleController.text.trim(),
-            amount: amount,
+            amount: totalAmount,
             paidBy: _paidBy!,
             splitAmong: _splitAmong,
             category: _category,
+            splitAmounts: splitAmounts,
           );
       if (mounted) context.pop();
     } catch (e) {
@@ -188,7 +231,29 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                         contentPadding: EdgeInsets.symmetric(horizontal: 12)),
                   ),
                   const SizedBox(height: 24),
-                  Text('Split among:', style: AppTextStyles.h2),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Split among:', style: AppTextStyles.h2),
+                      SegmentedButton<SplitMode>(
+                        segments: const [
+                          ButtonSegment(
+                              value: SplitMode.equal, label: Text('Equal')),
+                          ButtonSegment(
+                              value: SplitMode.exact, label: Text('Exact')),
+                        ],
+                        selected: {_splitMode},
+                        onSelectionChanged: (val) {
+                          setState(() {
+                            _splitMode = val.first;
+                            if (_splitMode == SplitMode.exact) {
+                              _distributeEqually();
+                            }
+                          });
+                        },
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 8),
                   ListView.builder(
                     shrinkWrap: true,
@@ -197,20 +262,43 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                     itemBuilder: (context, index) {
                       final memberId = plan.memberIds[index];
                       final isSelected = _splitAmong.contains(memberId);
-                      return CheckboxListTile(
-                        title: Text(memberLabel(memberId, members)),
-                        value: isSelected,
-                        onChanged: (checked) {
-                          setState(() {
-                            if (checked == true) {
-                              _splitAmong.add(memberId);
-                            } else {
-                              _splitAmong.remove(memberId);
-                            }
-                          });
-                        },
-                        activeColor: AppColors.accent,
-                        contentPadding: EdgeInsets.zero,
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CheckboxListTile(
+                            title: Text(memberLabel(memberId, members)),
+                            value: isSelected,
+                            onChanged: (checked) {
+                              setState(() {
+                                if (checked == true) {
+                                  _splitAmong.add(memberId);
+                                } else {
+                                  _splitAmong.remove(memberId);
+                                }
+                                if (_splitMode == SplitMode.exact) {
+                                  _distributeEqually();
+                                }
+                              });
+                            },
+                            activeColor: AppColors.accent,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          if (isSelected && _splitMode == SplitMode.exact)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 48, bottom: 8),
+                              child: TextFormField(
+                                controller: _exactAmountControllers[memberId],
+                                keyboardType: const TextInputType.numberWithOptions(
+                                    decimal: true),
+                                decoration: const InputDecoration(
+                                  prefixText: 'Rs. ',
+                                  isDense: true,
+                                  labelText: 'Share',
+                                ),
+                                style: AppTextStyles.body.copyWith(fontSize: 14),
+                              ),
+                            ),
+                        ],
                       );
                     },
                   ),

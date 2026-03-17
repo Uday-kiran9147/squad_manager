@@ -165,14 +165,15 @@ class PlanService {
   }
 
   // Add Expense
-  Future<String> addExpense(
-    String planId,
-    String title,
-    double amount,
-    String paidBy,
-    List<String> splitAmong,
-    ExpenseCategory category,
-  ) async {
+  Future<String> addExpense({
+    required String planId,
+    required String title,
+    required double amount,
+    required String paidBy,
+    required List<String> splitAmong,
+    required ExpenseCategory category,
+    Map<String, double>? splitAmounts,
+  }) async {
     final expensesRef = _firestore
         .collection(_plansCollection)
         .doc(planId)
@@ -188,6 +189,7 @@ class PlanService {
       paidBy: paidBy,
       splitAmong: splitAmong,
       perPersonAmount: perPersonAmount,
+      splitAmounts: splitAmounts ?? {},
       settledBy: [],
       category: category,
       createdAt: DateTime.now(),

@@ -1009,9 +1009,16 @@ class _ExpenseSection extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis),
                           Text(
-                            'Rs.${expense.perPersonAmount.toStringAsFixed(2)}/person · paid by ${_memberName(expense.paidBy)}',
+                            expense.splitAmounts.isNotEmpty
+                                ? 'Custom split · paid by ${_memberName(expense.paidBy)}'
+                                : 'Rs.${expense.perPersonAmount.toStringAsFixed(2)}/person · paid by ${_memberName(expense.paidBy)}',
                             style: AppTextStyles.label,
                           ),
+                          if (expense.splitAmounts.containsKey(currentUserId))
+                             Text(
+                              'Your share: Rs.${expense.splitAmounts[currentUserId]!.toStringAsFixed(2)}',
+                              style: AppTextStyles.label.copyWith(color: AppColors.accent, fontWeight: FontWeight.bold),
+                            ),
                         ],
                       ),
                     ),
