@@ -13,6 +13,7 @@ class UserModel with _$UserModel {
     String? phone,
     String? photoURL,
     String? upiId,
+    String? fcmToken,
     @Default(false) bool isPro,
     @TimestampConverter() DateTime? proUnlockedAt,
     @TimestampConverter() required DateTime createdAt,

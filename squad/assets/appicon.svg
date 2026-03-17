@@ -1,0 +1,16 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <!-- Navy background -->
+  <rect x="0" y="0" width="256" height="256" rx="60" fill="#1A1A2E" stroke="#E94560" stroke-width="5"/>
+
+  <!-- Red S -->
+  <path 
+    d="M128 70 
+       Q90 70 90 100 
+       Q90 130 128 130 
+       Q166 130 166 160 
+       Q166 190 128 190" 
+    fill="none" 
+    stroke="#E94560" 
+    stroke-width="18" 
+    stroke-linecap="round"/>
+</svg>
