@@ -62,3 +62,9 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/squad_play_store.png"
+  min_sdk_android: 21
