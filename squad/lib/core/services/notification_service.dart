@@ -13,11 +13,7 @@ class NotificationService {
 
     // Request permissions for iOS
     if (Platform.isIOS) {
-      await _fcm.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
+      await _fcm.requestPermission(alert: true, badge: true, sound: true);
     }
 
     // Handle background messages
@@ -25,7 +21,11 @@ class NotificationService {
 
     // Handle foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint('Foreground message received: ${message.notification?.title}');
+      if (kDebugMode) {
+        debugPrint(
+          'Foreground message received: ${message.notification?.title}',
+        );
+      }
       // You could show a local notification here if needed
     });
   }
@@ -40,18 +40,24 @@ class NotificationService {
         });
       }
     } catch (e) {
-      debugPrint('Error updating FCM token: $e');
+      if (kDebugMode) {
+        debugPrint('Error updating FCM token: $e');
+      }
     }
   }
 
-  /// Note: Sending notifications directly from the client is generally discouraged for production 
+  /// Note: Sending notifications directly from the client is generally discouraged for production
   /// apps due to security risks. Usually, you'd trigger a Cloud Function.
   /// However, for this MVP, we are setting up the groundwork for receiving notifications.
 }
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  debugPrint("Handling a background message: ${message.messageId}");
+  if (kDebugMode) {
+    debugPrint("Handling a background message: ${message.messageId}");
+  }
 }
 
-final notificationServiceProvider = Provider<NotificationService>((ref) => NotificationService());
+final notificationServiceProvider = Provider<NotificationService>(
+  (ref) => NotificationService(),
+);

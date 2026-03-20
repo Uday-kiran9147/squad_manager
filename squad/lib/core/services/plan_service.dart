@@ -32,18 +32,22 @@ class PlanService {
         .where('memberIds', arrayContains: userId)
         .orderBy('updatedAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) {
-              try {
-                final data = doc.data();
-                return Plan.fromJson(data);
-              } catch (e, stack) {
-                debugPrint('Plan parsing error: $e\n$stack');
-                return null;
-              }
-            })
-            .whereType<Plan>()
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) {
+                try {
+                  final data = doc.data();
+                  return Plan.fromJson(data);
+                } catch (e, stack) {
+                  if (kDebugMode) {
+                    debugPrint('Plan parsing error: $e\n$stack');
+                  }
+                  return null;
+                }
+              })
+              .whereType<Plan>()
+              .toList(),
+        );
   }
 
   // Get Plan by ID
@@ -54,7 +58,9 @@ class PlanService {
       try {
         return Plan.fromJson(data);
       } catch (e, stack) {
-        debugPrint('Plan fetch error: $e\n$stack');
+        if (kDebugMode) {
+          debugPrint('Plan fetch error: $e\n$stack');
+        }
         return null;
       }
     }
@@ -62,22 +68,22 @@ class PlanService {
   }
 
   Stream<Plan?> watchPlanById(String planId) {
-    return _firestore
-        .collection(_plansCollection)
-        .doc(planId)
-        .snapshots()
-        .map((doc) {
-          final data = doc.data();
-          if (doc.exists && data != null) {
-            try {
-              return Plan.fromJson(data);
-            } catch (e, stack) {
-              debugPrint('Plan watch error: $e\n$stack');
-              return null;
-            }
+    return _firestore.collection(_plansCollection).doc(planId).snapshots().map((
+      doc,
+    ) {
+      final data = doc.data();
+      if (doc.exists && data != null) {
+        try {
+          return Plan.fromJson(data);
+        } catch (e, stack) {
+          if (kDebugMode) {
+            debugPrint('Plan watch error: $e\n$stack');
           }
           return null;
-        });
+        }
+      }
+      return null;
+    });
   }
 
   // Add Poll Option
@@ -106,16 +112,18 @@ class PlanService {
         .collection(_pollOptionsSubcollection)
         .orderBy('dateTime')
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) {
-              try {
-                return PollOption.fromJson(doc.data());
-              } catch (e) {
-                return null;
-              }
-            })
-            .whereType<PollOption>()
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) {
+                try {
+                  return PollOption.fromJson(doc.data());
+                } catch (e) {
+                  return null;
+                }
+              })
+              .whereType<PollOption>()
+              .toList(),
+        );
   }
 
   // Vote on Poll Option
@@ -138,7 +146,7 @@ class PlanService {
         } else {
           voterIds.add(userId);
         }
-        
+
         transaction.update(optionRef, {
           'voterIds': voterIds,
           'voteCount': voterIds.length,
@@ -153,15 +161,12 @@ class PlanService {
     DateTime confirmedDate,
     String confirmedVenue,
   ) async {
-    await _firestore
-        .collection(_plansCollection)
-        .doc(planId)
-        .update({
-          'status': PlanStatus.confirmed.name,
-          'confirmedDate': Timestamp.fromDate(confirmedDate),
-          'confirmedVenue': confirmedVenue,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
+    await _firestore.collection(_plansCollection).doc(planId).update({
+      'status': PlanStatus.confirmed.name,
+      'confirmedDate': Timestamp.fromDate(confirmedDate),
+      'confirmedVenue': confirmedVenue,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   // Add Expense
@@ -207,16 +212,18 @@ class PlanService {
         .collection(_expensesSubcollection)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) {
-              try {
-                return Expense.fromJson(doc.data());
-              } catch (e) {
-                return null;
-              }
-            })
-            .whereType<Expense>()
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) {
+                try {
+                  return Expense.fromJson(doc.data());
+                } catch (e) {
+                  return null;
+                }
+              })
+              .whereType<Expense>()
+              .toList(),
+        );
   }
 
   // Mark Expense as Settled
@@ -268,24 +275,18 @@ class PlanService {
 
   // Add Member to Plan
   Future<void> addMemberToPlan(String planId, String userId) async {
-    await _firestore
-        .collection(_plansCollection)
-        .doc(planId)
-        .update({
-          'memberIds': FieldValue.arrayUnion([userId]),
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
+    await _firestore.collection(_plansCollection).doc(planId).update({
+      'memberIds': FieldValue.arrayUnion([userId]),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   // Mark Plan as Completed
   Future<void> completePlan(String planId) async {
-    await _firestore
-        .collection(_plansCollection)
-        .doc(planId)
-        .update({
-          'status': PlanStatus.completed.name,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
+    await _firestore.collection(_plansCollection).doc(planId).update({
+      'status': PlanStatus.completed.name,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   // Update Plan (partial update of editable fields)
@@ -295,9 +296,7 @@ class PlanService {
     String? description,
     String? location,
   }) async {
-    final data = <String, dynamic>{
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
+    final data = <String, dynamic>{'updatedAt': FieldValue.serverTimestamp()};
     if (title != null) data['title'] = title;
     if (description != null) data['description'] = description;
     if (location != null) data['location'] = location;
@@ -313,16 +312,18 @@ class PlanService {
         .collection(_itinerarySubcollection)
         .orderBy('time', descending: false)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) {
-              try {
-                return ItineraryItem.fromJson(doc.data());
-              } catch (e) {
-                return null;
-              }
-            })
-            .whereType<ItineraryItem>()
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) {
+                try {
+                  return ItineraryItem.fromJson(doc.data());
+                } catch (e) {
+                  return null;
+                }
+              })
+              .whereType<ItineraryItem>()
+              .toList(),
+        );
   }
 
   Future<String> addItineraryItem(String planId, ItineraryItem item) async {
