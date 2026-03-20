@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:squad/core/providers.dart';
 import 'package:squad/core/theme/app_colors.dart';
 import 'package:squad/core/theme/app_text_styles.dart';
@@ -21,6 +22,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final _upiController = TextEditingController();
   final _phoneController = TextEditingController();
   bool _prefilled = false;
+  String _appVersion = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAppVersion();
+  }
+
+  Future<void> _loadAppVersion() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    if (mounted) {
+      setState(() {
+        _appVersion = 'v${packageInfo.version}+${packageInfo.buildNumber}';
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -43,7 +60,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     try {
-      await ref.read(profileNotifierProvider.notifier).updateProfile(
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .updateProfile(
             displayName: _nameController.text.trim(),
             upiId: _upiController.text.trim().toLowerCase(),
             phone: _phoneController.text.trim(),
@@ -60,7 +79,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Error: $e'), backgroundColor: AppColors.error),
+            content: Text('Error: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     }
@@ -72,15 +93,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Account'),
         content: const Text(
-            'This will permanently delete your account and all your data. This cannot be undone.'),
+          'This will permanently delete your account and all your data. This cannot be undone.',
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete',
-                style: TextStyle(color: AppColors.error)),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: AppColors.error),
+            ),
           ),
         ],
       ),
@@ -92,8 +117,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Error deleting account: $e'),
-              backgroundColor: AppColors.error),
+            content: Text('Error deleting account: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     }
@@ -132,8 +158,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           _prefillIfNeeded();
 
           return SingleChildScrollView(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
             child: Form(
               key: _formKey,
               child: Column(
@@ -144,8 +169,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                            color: AppColors.accent.withValues(alpha: 0.2),
-                            width: 4),
+                          color: AppColors.accent.withValues(alpha: 0.2),
+                          width: 4,
+                        ),
                       ),
                       child: CircleAvatar(
                         radius: 60,
@@ -154,8 +180,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             ? CachedNetworkImageProvider(user.photoURL!)
                             : null,
                         child: user.photoURL == null
-                            ? const Icon(Icons.person,
-                                size: 60, color: AppColors.accent)
+                            ? const Icon(
+                                Icons.person,
+                                size: 60,
+                                color: AppColors.accent,
+                              )
                             : null,
                       ),
                     ),
@@ -180,8 +209,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       hintText: 'Your name',
                       prefixIcon: Icon(Icons.person_outline_rounded),
                     ),
-                    validator: (v) =>
-                        Validators.validateRequired(v, 'Name'),
+                    validator: (v) => Validators.validateRequired(v, 'Name'),
                   ),
                   const SizedBox(height: 24),
                   _buildFieldLabel('UPI ID (For bill splitting)'),
@@ -226,9 +254,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               strokeWidth: 2,
                             ),
                           )
-                        : const Text('Save Profile',
+                        : const Text(
+                            'Save Profile',
                             style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold)),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                   const SizedBox(height: 32),
                   const SizedBox(height: 32),
@@ -257,7 +289,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       children: [
                         Text(
                           'We building Squad for you and your friends.',
-                          style: AppTextStyles.body.copyWith(fontWeight: FontWeight.bold),
+                          style: AppTextStyles.body.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -271,7 +305,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ElevatedButton(
                           onPressed: () => FeedbackSheet.show(context),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.accent.withValues(alpha: 0.1),
+                            backgroundColor: AppColors.accent.withValues(
+                              alpha: 0.1,
+                            ),
                             foregroundColor: AppColors.accent,
                             elevation: 0,
                             side: const BorderSide(color: AppColors.accent),
@@ -291,10 +327,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
                     onPressed: isSaving ? null : _deleteAccount,
-                    icon: const Icon(Icons.delete_forever_rounded,
-                        color: AppColors.error),
-                    label: const Text('Delete Account',
-                        style: TextStyle(color: AppColors.error)),
+                    icon: const Icon(
+                      Icons.delete_forever_rounded,
+                      color: AppColors.error,
+                    ),
+                    label: const Text(
+                      'Delete Account',
+                      style: TextStyle(color: AppColors.error),
+                    ),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       side: const BorderSide(color: AppColors.error),
@@ -304,6 +344,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  if (_appVersion.isNotEmpty)
+                    Center(
+                      child: Text(
+                        'Squad $_appVersion',
+                        style: AppTextStyles.label.copyWith(
+                          color: AppColors.textSecondary.withValues(alpha: 0.5),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
