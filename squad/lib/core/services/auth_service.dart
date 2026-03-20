@@ -6,14 +6,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   bool _googleSignInInitialized = false;
 
   Future<void> _ensureGoogleSignInInitialized() async {
     if (!_googleSignInInitialized) {
       await _googleSignIn.initialize(
-        clientId: "259598366990-a2cbfdmsrb4imum25pjugcfkbn64edfv.apps.googleusercontent.com",
+        clientId:
+            "259598366990-a2cbfdmsrb4imum25pjugcfkbn64edfv.apps.googleusercontent.com",
       );
       _googleSignInInitialized = true;
     }
@@ -34,16 +35,13 @@ class AuthService {
   /// Private helper to convert any exception to [FirebaseAuthException]
   FirebaseAuthException _toAuthException(Object e) {
     if (e is FirebaseAuthException) return e;
-    return FirebaseAuthException(
-      code: 'unknown',
-      message: e.toString(),
-    );
+    return FirebaseAuthException(code: 'unknown', message: e.toString());
   }
 
   /// Update user data in Firestore
   Future<void> _updateUserData(User user) async {
     final userRef = _firestore.collection('squadusers').doc(user.uid);
-    
+
     await userRef.set({
       'uid': user.uid,
       'email': user.email,
@@ -59,10 +57,13 @@ class AuthService {
     try {
       await _ensureGoogleSignInInitialized();
       final googleUser = await _googleSignIn.authenticate();
-      
+
       final googleAuth = googleUser.authentication;
-      final authz = await googleUser.authorizationClient.authorizeScopes(['email', 'profile']);
-      
+      final authz = await googleUser.authorizationClient.authorizeScopes([
+        'email',
+        'profile',
+      ]);
+
       final credential = GoogleAuthProvider.credential(
         accessToken: authz.accessToken,
         idToken: googleAuth.idToken,

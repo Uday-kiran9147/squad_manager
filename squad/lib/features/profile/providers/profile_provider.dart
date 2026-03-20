@@ -39,5 +39,6 @@ class ProfileNotifier extends AsyncNotifier<void> {
   }
 }
 
-final profileNotifierProvider =
-    AsyncNotifierProvider<ProfileNotifier, void>(ProfileNotifier.new);
+final profileNotifierProvider = AsyncNotifierProvider<ProfileNotifier, void>(
+  ProfileNotifier.new,
+);

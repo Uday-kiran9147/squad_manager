@@ -16,9 +16,7 @@ class HomeScreen extends ConsumerWidget {
     final currentUserId = ref.watch(currentUserIdProvider);
 
     if (currentUserId == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final plansAsync = ref.watch(userPlansProvider);
@@ -45,21 +43,25 @@ class HomeScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline,
-                  color: AppColors.error, size: 48),
+              const Icon(Icons.error_outline, color: AppColors.error, size: 48),
               const SizedBox(height: 12),
               Text('Error loading plans', style: AppTextStyles.body),
               const SizedBox(height: 8),
-              Text('$e',
-                  style: AppTextStyles.label, textAlign: TextAlign.center),
+              Text(
+                '$e',
+                style: AppTextStyles.label,
+                textAlign: TextAlign.center,
+              ),
             ],
           ),
         ),
         data: (plans) {
           if (plans.isEmpty) {
-            return _EmptyState(onCreatePlan: () {
-              context.go('/home/create-plan');
-            });
+            return _EmptyState(
+              onCreatePlan: () {
+                context.go('/home/create-plan');
+              },
+            );
           }
           return RefreshIndicator(
             onRefresh: () async {
@@ -101,15 +103,19 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.group_outlined,
-                size: 80, color: AppColors.textSecondary),
+            const Icon(
+              Icons.group_outlined,
+              size: 80,
+              color: AppColors.textSecondary,
+            ),
             const SizedBox(height: 24),
             Text('No plans yet', style: AppTextStyles.h1),
             const SizedBox(height: 8),
             Text(
               'Create your first plan and share it with your squad!',
-              style: AppTextStyles.body
-                  .copyWith(color: AppColors.textSecondary),
+              style: AppTextStyles.body.copyWith(
+                color: AppColors.textSecondary,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -171,34 +177,41 @@ class _PlanCard extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Text(plan.title,
-                        style: AppTextStyles.h2,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis),
+                    child: Text(
+                      plan.title,
+                      style: AppTextStyles.h2,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: statusColor.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       _getStatusLabel(plan.status),
-                      style: AppTextStyles.label
-                          .copyWith(color: statusColor, fontSize: 11),
+                      style: AppTextStyles.label.copyWith(
+                        color: statusColor,
+                        fontSize: 11,
+                      ),
                     ),
                   ),
                 ],
               ),
-              if (plan.description != null &&
-                  plan.description!.isNotEmpty) ...[
+              if (plan.description != null && plan.description!.isNotEmpty) ...[
                 const SizedBox(height: 6),
                 Text(
                   plan.description!,
-                  style: AppTextStyles.body
-                      .copyWith(color: AppColors.textSecondary, fontSize: 13),
+                  style: AppTextStyles.body.copyWith(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -206,8 +219,11 @@ class _PlanCard extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  const Icon(Icons.people_outline,
-                      size: 14, color: AppColors.textSecondary),
+                  const Icon(
+                    Icons.people_outline,
+                    size: 14,
+                    color: AppColors.textSecondary,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     '${plan.memberIds.length} member${plan.memberIds.length == 1 ? '' : 's'}',
@@ -215,8 +231,11 @@ class _PlanCard extends StatelessWidget {
                   ),
                   if (plan.confirmedDate != null) ...[
                     const SizedBox(width: 16),
-                    const Icon(Icons.calendar_today_outlined,
-                        size: 14, color: AppColors.textSecondary),
+                    const Icon(
+                      Icons.calendar_today_outlined,
+                      size: 14,
+                      color: AppColors.textSecondary,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       DateFormat('d MMM').format(plan.confirmedDate!),
@@ -225,8 +244,11 @@ class _PlanCard extends StatelessWidget {
                   ],
                   if (plan.location != null && plan.location!.isNotEmpty) ...[
                     const SizedBox(width: 16),
-                    const Icon(Icons.location_on_outlined,
-                        size: 14, color: AppColors.textSecondary),
+                    const Icon(
+                      Icons.location_on_outlined,
+                      size: 14,
+                      color: AppColors.textSecondary,
+                    ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(

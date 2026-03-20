@@ -11,7 +11,9 @@ import 'package:squad/features/plan/models/expense.dart';
 import 'package:squad/features/plan/models/itinerary_item.dart';
 import 'package:squad/core/services/feedback_service.dart';
 
-final firebaseAuthProvider = Provider<FirebaseAuth>((ref) => FirebaseAuth.instance);
+final firebaseAuthProvider = Provider<FirebaseAuth>(
+  (ref) => FirebaseAuth.instance,
+);
 
 final authServiceProvider = Provider<AuthService>((ref) => AuthService());
 
@@ -37,10 +39,10 @@ final userProvider = FutureProvider.family<UserModel?, String>((ref, uid) {
 
 /// Batch-fetches UserModel list for a given list of UIDs.
 /// Used for resolving member display names on plan screens.
-final planMembersProvider =
-    FutureProvider.autoDispose.family<List<UserModel>, List<String>>(
-  (ref, memberIds) => ref.watch(userServiceProvider).getUsers(memberIds),
-);
+final planMembersProvider = FutureProvider.autoDispose
+    .family<List<UserModel>, List<String>>(
+      (ref, memberIds) => ref.watch(userServiceProvider).getUsers(memberIds),
+    );
 
 // Plan related providers
 final planServiceProvider = Provider<PlanService>((ref) => PlanService());
@@ -59,19 +61,27 @@ final planProvider = FutureProvider.family<Plan?, String>((ref, planId) {
   return ref.watch(planServiceProvider).getPlanById(planId);
 });
 
-final pollOptionsProvider =
-    StreamProvider.family<List<PollOption>, String>((ref, planId) {
+final pollOptionsProvider = StreamProvider.family<List<PollOption>, String>((
+  ref,
+  planId,
+) {
   return ref.watch(planServiceProvider).getPollOptionsForPlan(planId);
 });
 
-final expensesProvider =
-    StreamProvider.family<List<Expense>, String>((ref, planId) {
+final expensesProvider = StreamProvider.family<List<Expense>, String>((
+  ref,
+  planId,
+) {
   return ref.watch(planServiceProvider).getExpensesForPlan(planId);
 });
 
-final itineraryProvider =
-    StreamProvider.family<List<ItineraryItem>, String>((ref, planId) {
+final itineraryProvider = StreamProvider.family<List<ItineraryItem>, String>((
+  ref,
+  planId,
+) {
   return ref.watch(planServiceProvider).getItineraryForPlan(planId);
 });
 
-final feedbackServiceProvider = Provider<FeedbackService>((ref) => FeedbackService());
+final feedbackServiceProvider = Provider<FeedbackService>(
+  (ref) => FeedbackService(),
+);

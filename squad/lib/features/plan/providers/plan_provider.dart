@@ -41,8 +41,12 @@ class PlanNotifier extends AsyncNotifier<void> {
   }) async {
     state = const AsyncLoading();
     try {
-      await _service.updatePlan(planId,
-          title: title, description: description, location: location);
+      await _service.updatePlan(
+        planId,
+        title: title,
+        description: description,
+        location: location,
+      );
       state = const AsyncData(null);
     } catch (e, st) {
       state = AsyncError(e, st);
@@ -64,7 +68,10 @@ class PlanNotifier extends AsyncNotifier<void> {
 
   /// Confirms the plan with a final date and venue.
   Future<void> confirmPlan(
-      String planId, DateTime confirmedDate, String confirmedVenue) async {
+    String planId,
+    DateTime confirmedDate,
+    String confirmedVenue,
+  ) async {
     state = const AsyncLoading();
     try {
       await _service.confirmPlan(planId, confirmedDate, confirmedVenue);
@@ -89,7 +96,10 @@ class PlanNotifier extends AsyncNotifier<void> {
 
   /// Records a vote for a poll option (idempotent — one vote per user).
   Future<void> voteOnOption(
-      String planId, String optionId, String userId) async {
+    String planId,
+    String optionId,
+    String userId,
+  ) async {
     state = const AsyncLoading();
     try {
       await _service.toggleVote(planId, optionId, userId);
@@ -130,7 +140,10 @@ class PlanNotifier extends AsyncNotifier<void> {
 
   /// Marks an expense as settled by the current user and optionally launches UPI.
   Future<void> markExpenseSettled(
-      String planId, String expenseId, String userId) async {
+    String planId,
+    String expenseId,
+    String userId,
+  ) async {
     state = const AsyncLoading();
     try {
       await _service.markExpenseSettled(planId, expenseId, userId);
@@ -227,8 +240,9 @@ class PlanNotifier extends AsyncNotifier<void> {
   }
 }
 
-final planNotifierProvider =
-    AsyncNotifierProvider<PlanNotifier, void>(PlanNotifier.new);
+final planNotifierProvider = AsyncNotifierProvider<PlanNotifier, void>(
+  PlanNotifier.new,
+);
 
 final planBalanceProvider = Provider.family<PlanBalance, String>((ref, planId) {
   final expenses = ref.watch(expensesProvider(planId)).value ?? [];
@@ -246,7 +260,8 @@ final planBalanceProvider = Provider.family<PlanBalance, String>((ref, planId) {
       for (final memberId in expense.splitAmong) {
         if (memberId == currentUserId) continue;
         if (!expense.settledBy.contains(memberId)) {
-          final share = expense.splitAmounts[memberId] ?? expense.perPersonAmount;
+          final share =
+              expense.splitAmounts[memberId] ?? expense.perPersonAmount;
           totalOwed += share;
           peerBalances[memberId] = (peerBalances[memberId] ?? 0) + share;
         }
@@ -254,7 +269,8 @@ final planBalanceProvider = Provider.family<PlanBalance, String>((ref, planId) {
     } else if (expense.splitAmong.contains(currentUserId)) {
       // Someone else paid, current user owes
       if (!expense.settledBy.contains(currentUserId)) {
-        final share = expense.splitAmounts[currentUserId] ?? expense.perPersonAmount;
+        final share =
+            expense.splitAmounts[currentUserId] ?? expense.perPersonAmount;
         totalOwing += share;
         peerBalances[expense.paidBy] =
             (peerBalances[expense.paidBy] ?? 0) - share;
@@ -268,4 +284,3 @@ final planBalanceProvider = Provider.family<PlanBalance, String>((ref, planId) {
     peerBalances: peerBalances,
   );
 });
-

@@ -9,19 +9,14 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   final container = ProviderContainer();
   await container.read(notificationServiceProvider).initialize();
 
   runApp(
-    UncontrolledProviderScope(
-      container: container,
-      child: const SquadApp(),
-    ),
+    UncontrolledProviderScope(container: container, child: const SquadApp()),
   );
 }
 

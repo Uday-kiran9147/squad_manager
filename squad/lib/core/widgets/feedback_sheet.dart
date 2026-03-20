@@ -36,15 +36,17 @@ class _FeedbackSheetState extends ConsumerState<FeedbackSheet> {
     if (_selectedVibe == null) return;
 
     setState(() => _isSubmitting = true);
-    
+
     try {
       final userId = ref.read(currentUserIdProvider);
       final feedbackService = ref.read(feedbackServiceProvider);
-      
+
       await feedbackService.submitFeedback(
         userId: userId,
         vibe: _vibes[_selectedVibe!]['label'],
-        comment: _commentController.text.trim().isEmpty ? null : _commentController.text.trim(),
+        comment: _commentController.text.trim().isEmpty
+            ? null
+            : _commentController.text.trim(),
       );
 
       if (mounted) {
@@ -52,7 +54,7 @@ class _FeedbackSheetState extends ConsumerState<FeedbackSheet> {
           _isSubmitting = false;
           _isSubmitted = true;
         });
-        
+
         // Auto close after 2 seconds
         await Future.delayed(const Duration(seconds: 2));
         if (mounted) Navigator.pop(context);
@@ -85,9 +87,7 @@ class _FeedbackSheetState extends ConsumerState<FeedbackSheet> {
         ),
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
-          child: _isSubmitted 
-            ? _buildSuccessState() 
-            : _buildFeedbackForm(),
+          child: _isSubmitted ? _buildSuccessState() : _buildFeedbackForm(),
         ),
       ),
     );
@@ -164,12 +164,14 @@ class _FeedbackSheetState extends ConsumerState<FeedbackSheet> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: isSelected 
-                          ? vibe['color'].withValues(alpha: 0.2)
-                          : AppColors.divider.withValues(alpha: 0.3),
+                        color: isSelected
+                            ? vibe['color'].withValues(alpha: 0.2)
+                            : AppColors.divider.withValues(alpha: 0.3),
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: isSelected ? vibe['color'] : Colors.transparent,
+                          color: isSelected
+                              ? vibe['color']
+                              : Colors.transparent,
                           width: 2,
                         ),
                       ),
@@ -182,8 +184,12 @@ class _FeedbackSheetState extends ConsumerState<FeedbackSheet> {
                     Text(
                       vibe['label'],
                       style: AppTextStyles.label.copyWith(
-                        color: isSelected ? vibe['color'] : AppColors.textSecondary,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: isSelected
+                            ? vibe['color']
+                            : AppColors.textSecondary,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                         fontSize: 11,
                       ),
                     ),
@@ -196,52 +202,62 @@ class _FeedbackSheetState extends ConsumerState<FeedbackSheet> {
         const SizedBox(height: 32),
         AnimatedSize(
           duration: const Duration(milliseconds: 200),
-          child: _selectedVibe != null 
-            ? Column(
-                children: [
-                  TextField(
-                    controller: _commentController,
-                    maxLines: 2,
-                    style: AppTextStyles.body,
-                    decoration: InputDecoration(
-                      hintText: 'Want to spill some tea? (Optional)',
-                      hintStyle: AppTextStyles.body.copyWith(
-                        color: AppColors.textSecondary.withValues(alpha: 0.4),
-                        fontSize: 14,
+          child: _selectedVibe != null
+              ? Column(
+                  children: [
+                    TextField(
+                      controller: _commentController,
+                      maxLines: 2,
+                      style: AppTextStyles.body,
+                      decoration: InputDecoration(
+                        hintText: 'Want to spill some tea? (Optional)',
+                        hintStyle: AppTextStyles.body.copyWith(
+                          color: AppColors.textSecondary.withValues(alpha: 0.4),
+                          fontSize: 14,
+                        ),
+                        filled: true,
+                        fillColor: AppColors.background.withValues(alpha: 0.5),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.all(20),
                       ),
-                      filled: true,
-                      fillColor: AppColors.background.withValues(alpha: 0.5),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.all(20),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                ],
-              )
-            : const SizedBox.shrink(),
+                    const SizedBox(height: 24),
+                  ],
+                )
+              : const SizedBox.shrink(),
         ),
         SizedBox(
           width: double.infinity,
           height: 60,
           child: ElevatedButton(
-            onPressed: (_selectedVibe == null || _isSubmitting) ? null : _submitFeedback,
+            onPressed: (_selectedVibe == null || _isSubmitting)
+                ? null
+                : _submitFeedback,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.accent,
               foregroundColor: Colors.white,
               disabledBackgroundColor: AppColors.divider.withValues(alpha: 0.5),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
               elevation: 0,
             ),
             child: _isSubmitting
-              ? const SizedBox(
-                  height: 24,
-                  width: 24,
-                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                )
-              : const Text('Send to the Squad', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ? const SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : const Text(
+                    'Send to the Squad',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
           ),
         ),
       ],

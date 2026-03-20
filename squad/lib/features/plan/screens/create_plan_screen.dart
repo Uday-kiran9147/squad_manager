@@ -66,8 +66,9 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
     if (time == null || !mounted) return;
 
     setState(() {
-      _dateOptions
-          .add(DateTime(date.year, date.month, date.day, time.hour, time.minute));
+      _dateOptions.add(
+        DateTime(date.year, date.month, date.day, time.hour, time.minute),
+      );
     });
   }
 
@@ -76,7 +77,8 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
     if (_dateOptions.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Please add at least one date option for the poll')),
+          content: Text('Please add at least one date option for the poll'),
+        ),
       );
       return;
     }
@@ -104,7 +106,10 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     }
@@ -120,8 +125,9 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
       if (next.hasError && !next.isLoading) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Error: ${next.error}'),
-              backgroundColor: AppColors.error),
+            content: Text('Error: ${next.error}'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     });
@@ -165,16 +171,22 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
               const SizedBox(height: 32),
               Row(
                 children: [
-                  Expanded(child: Text('Date Options', style: AppTextStyles.h2)),
+                  Expanded(
+                    child: Text('Date Options', style: AppTextStyles.h2),
+                  ),
                   IconButton(
                     onPressed: _addDateOption,
-                    icon: const Icon(Icons.add_circle_outline,
-                        color: AppColors.accent),
+                    icon: const Icon(
+                      Icons.add_circle_outline,
+                      color: AppColors.accent,
+                    ),
                   ),
                 ],
               ),
-              Text('Add options for your friends to vote on',
-                  style: AppTextStyles.label),
+              Text(
+                'Add options for your friends to vote on',
+                style: AppTextStyles.label,
+              ),
               const SizedBox(height: 12),
               if (_dateOptions.isEmpty)
                 Container(
@@ -185,15 +197,22 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
                   ),
                   child: Column(
                     children: [
-                      const Icon(Icons.calendar_month,
-                          color: AppColors.textSecondary, size: 40),
+                      const Icon(
+                        Icons.calendar_month,
+                        color: AppColors.textSecondary,
+                        size: 40,
+                      ),
                       const SizedBox(height: 12),
-                      Text('No dates added yet',
-                          style: AppTextStyles.body
-                              .copyWith(color: AppColors.textSecondary)),
+                      Text(
+                        'No dates added yet',
+                        style: AppTextStyles.body.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
                       TextButton(
-                          onPressed: _addDateOption,
-                          child: const Text('Add a Date')),
+                        onPressed: _addDateOption,
+                        child: const Text('Add a Date'),
+                      ),
                     ],
                   ),
                 )
@@ -207,15 +226,20 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
                     final date = _dateOptions[index];
                     return Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.surface,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.event,
-                              color: AppColors.accent, size: 20),
+                          const Icon(
+                            Icons.event,
+                            color: AppColors.accent,
+                            size: 20,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -226,12 +250,15 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
                           IconButton(
                             onPressed: () =>
                                 setState(() => _dateOptions.removeAt(index)),
-                            icon: const Icon(Icons.remove_circle_outline,
-                                color: AppColors.error, size: 20),
+                            icon: const Icon(
+                              Icons.remove_circle_outline,
+                              color: AppColors.error,
+                              size: 20,
+                            ),
                           ),
                         ],
                       ),
-                    ); 
+                    );
                   },
                 ),
               const SizedBox(height: 12),
@@ -253,7 +280,9 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(
-                            color: Colors.white, strokeWidth: 2),
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
                       )
                     : const Text('Create & Share'),
               ),

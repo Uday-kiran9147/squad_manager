@@ -31,16 +31,16 @@ class PlanDetailScreen extends ConsumerWidget {
       if (next.hasError && !next.isLoading) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Error: ${next.error}'),
-              backgroundColor: AppColors.error),
+            content: Text('Error: ${next.error}'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     });
 
     return planAsync.when(
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (e, _) => Scaffold(
         appBar: AppBar(title: const Text('Plan')),
         body: Center(child: Text('Error: $e')),
@@ -64,10 +64,10 @@ class PlanDetailScreen extends ConsumerWidget {
               IconButton(
                 icon: const Icon(Icons.share_outlined),
                 onPressed: () {
-                  final link =
-                      'https://townsquaredotin.web.app/invite/$planId';
+                  final link = 'https://townsquaredotin.web.app/invite/$planId';
                   Share.share(
-                      'Join our squad "${plan.title}" on Squad App!\n$link');
+                    'Join our squad "${plan.title}" on Squad App!\n$link',
+                  );
                 },
               ),
               if (isOrganiser)
@@ -80,8 +80,10 @@ class PlanDetailScreen extends ConsumerWidget {
                           .read(planNotifierProvider.notifier)
                           .completePlan(planId);
                     } else if (value == 'delete') {
-                      final confirmed = await _confirmDelete(context,
-                          'Delete plan "${plan.title}"? This cannot be undone.');
+                      final confirmed = await _confirmDelete(
+                        context,
+                        'Delete plan "${plan.title}"? This cannot be undone.',
+                      );
                       if (confirmed && context.mounted) {
                         await ref
                             .read(planNotifierProvider.notifier)
@@ -91,14 +93,22 @@ class PlanDetailScreen extends ConsumerWidget {
                     }
                   },
                   itemBuilder: (_) => [
-                    const PopupMenuItem(value: 'edit', child: Text('Edit Plan')),
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Text('Edit Plan'),
+                    ),
                     if (plan.status == PlanStatus.confirmed)
                       const PopupMenuItem(
-                          value: 'complete', child: Text('Mark Complete')),
+                        value: 'complete',
+                        child: Text('Mark Complete'),
+                      ),
                     const PopupMenuItem(
-                        value: 'delete',
-                        child: Text('Delete Plan',
-                            style: TextStyle(color: AppColors.error))),
+                      value: 'delete',
+                      child: Text(
+                        'Delete Plan',
+                        style: TextStyle(color: AppColors.error),
+                      ),
+                    ),
                   ],
                 ),
             ],
@@ -127,8 +137,7 @@ class PlanDetailScreen extends ConsumerWidget {
                     : null,
               ),
               pollOptionsAsync.when(
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(child: CircularProgressIndicator()),
                 error: (e, _) => Text('Error: $e'),
                 data: (options) => _PollSection(
                   planId: planId,
@@ -144,24 +153,19 @@ class PlanDetailScreen extends ConsumerWidget {
                 title: 'Expenses',
                 icon: Icons.receipt_long_outlined,
                 trailing: TextButton(
-                  onPressed: () =>
-                      context.go('/home/plan/$planId/add-expense'),
+                  onPressed: () => context.go('/home/plan/$planId/add-expense'),
                   child: const Text('Add'),
                 ),
               ),
               expensesAsync.when(
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(child: CircularProgressIndicator()),
                 error: (e, _) => Text('Error: $e'),
                 data: (expenses) {
                   final balance = ref.watch(planBalanceProvider(planId));
                   return Column(
                     children: [
                       if (expenses.isNotEmpty) ...[
-                        _BalanceSummary(
-                          balance: balance,
-                          members: members,
-                        ),
+                        _BalanceSummary(balance: balance, members: members),
                         const SizedBox(height: 12),
                       ],
                       _ExpenseSection(
@@ -191,7 +195,9 @@ class PlanDetailScreen extends ConsumerWidget {
                         )
                       : null,
                 ),
-                ref.watch(itineraryProvider(planId)).when(
+                ref
+                    .watch(itineraryProvider(planId))
+                    .when(
                       loading: () =>
                           const Center(child: CircularProgressIndicator()),
                       error: (e, _) => Text('Error: $e'),
@@ -219,12 +225,15 @@ class PlanDetailScreen extends ConsumerWidget {
             content: Text(message),
             actions: [
               TextButton(
-                  onPressed: () => Navigator.pop(ctx, false),
-                  child: const Text('Cancel')),
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel'),
+              ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Delete',
-                    style: TextStyle(color: AppColors.error)),
+                child: const Text(
+                  'Delete',
+                  style: TextStyle(color: AppColors.error),
+                ),
               ),
             ],
           ),
@@ -262,12 +271,15 @@ class PlanDetailScreen extends ConsumerWidget {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
-              await ref.read(planNotifierProvider.notifier).updatePlan(
+              await ref
+                  .read(planNotifierProvider.notifier)
+                  .updatePlan(
                     plan.planId,
                     title: titleC.text.trim(),
                     description: descC.text.trim(),
@@ -282,7 +294,10 @@ class PlanDetailScreen extends ConsumerWidget {
   }
 
   void _showAddItineraryDialog(
-      BuildContext context, WidgetRef ref, String planId) {
+    BuildContext context,
+    WidgetRef ref,
+    String planId,
+  ) {
     final titleC = TextEditingController();
     final locC = TextEditingController();
     DateTime pickedTime = DateTime.now();
@@ -302,8 +317,9 @@ class PlanDetailScreen extends ConsumerWidget {
               const SizedBox(height: 8),
               TextField(
                 controller: locC,
-                decoration:
-                    const InputDecoration(labelText: 'Store/Venue Location'),
+                decoration: const InputDecoration(
+                  labelText: 'Store/Venue Location',
+                ),
               ),
               const SizedBox(height: 16),
               ListTile(
@@ -331,13 +347,16 @@ class PlanDetailScreen extends ConsumerWidget {
           ),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel')),
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
             TextButton(
               onPressed: () async {
                 if (titleC.text.isEmpty) return;
                 Navigator.pop(ctx);
-                await ref.read(planNotifierProvider.notifier).addItineraryItem(
+                await ref
+                    .read(planNotifierProvider.notifier)
+                    .addItineraryItem(
                       planId,
                       ItineraryItem(
                         itemId: '',
@@ -363,18 +382,18 @@ class _PlanStatusSection extends StatelessWidget {
   const _PlanStatusSection({required this.plan});
 
   String _statusLabel(PlanStatus s) => switch (s) {
-        PlanStatus.draft => 'Draft',
-        PlanStatus.polling => 'Voting in progress',
-        PlanStatus.confirmed => 'Confirmed',
-        PlanStatus.completed => 'Completed',
-      };
+    PlanStatus.draft => 'Draft',
+    PlanStatus.polling => 'Voting in progress',
+    PlanStatus.confirmed => 'Confirmed',
+    PlanStatus.completed => 'Completed',
+  };
 
   Color _statusColor(PlanStatus s) => switch (s) {
-        PlanStatus.draft => AppColors.textSecondary,
-        PlanStatus.polling => AppColors.warning,
-        PlanStatus.confirmed => AppColors.success,
-        PlanStatus.completed => AppColors.textSecondary,
-      };
+    PlanStatus.draft => AppColors.textSecondary,
+    PlanStatus.polling => AppColors.warning,
+    PlanStatus.confirmed => AppColors.success,
+    PlanStatus.completed => AppColors.textSecondary,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -389,14 +408,15 @@ class _PlanStatusSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: statusColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Text(_statusLabel(plan.status),
-                style: AppTextStyles.label.copyWith(color: statusColor)),
+            child: Text(
+              _statusLabel(plan.status),
+              style: AppTextStyles.label.copyWith(color: statusColor),
+            ),
           ),
           if (plan.description != null && plan.description!.isNotEmpty) ...[
             const SizedBox(height: 12),
@@ -404,48 +424,68 @@ class _PlanStatusSection extends StatelessWidget {
           ],
           if (plan.location != null && plan.location!.isNotEmpty) ...[
             const SizedBox(height: 8),
-            Row(children: [
-              const Icon(Icons.location_on_outlined,
-                  size: 16, color: AppColors.textSecondary),
-              const SizedBox(width: 6),
-              Text(plan.location!, style: AppTextStyles.body),
-            ]),
+            Row(
+              children: [
+                const Icon(
+                  Icons.location_on_outlined,
+                  size: 16,
+                  color: AppColors.textSecondary,
+                ),
+                const SizedBox(width: 6),
+                Text(plan.location!, style: AppTextStyles.body),
+              ],
+            ),
           ],
           if (plan.confirmedDate != null) ...[
             const SizedBox(height: 8),
-            Row(children: [
-              const Icon(Icons.event_outlined,
-                  size: 16, color: AppColors.success),
-              const SizedBox(width: 6),
-              Text(
-                DateFormat('EEEE, d MMMM yyyy').format(plan.confirmedDate!),
-                style:
-                    AppTextStyles.body.copyWith(color: AppColors.success),
-              ),
-            ]),
+            Row(
+              children: [
+                const Icon(
+                  Icons.event_outlined,
+                  size: 16,
+                  color: AppColors.success,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  DateFormat('EEEE, d MMMM yyyy').format(plan.confirmedDate!),
+                  style: AppTextStyles.body.copyWith(color: AppColors.success),
+                ),
+              ],
+            ),
           ],
           if (plan.confirmedVenue != null &&
               plan.confirmedVenue!.isNotEmpty) ...[
             const SizedBox(height: 4),
-            Row(children: [
-              const Icon(Icons.place_outlined,
-                  size: 16, color: AppColors.success),
-              const SizedBox(width: 6),
-              Text(plan.confirmedVenue!,
-                  style:
-                      AppTextStyles.body.copyWith(color: AppColors.success)),
-            ]),
+            Row(
+              children: [
+                const Icon(
+                  Icons.place_outlined,
+                  size: 16,
+                  color: AppColors.success,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  plan.confirmedVenue!,
+                  style: AppTextStyles.body.copyWith(color: AppColors.success),
+                ),
+              ],
+            ),
           ],
           const SizedBox(height: 8),
-          Row(children: [
-            const Icon(Icons.people_outline,
-                size: 16, color: AppColors.textSecondary),
-            const SizedBox(width: 6),
-            Text(
-              '${plan.memberIds.length} member${plan.memberIds.length == 1 ? "" : "s"}',
-              style: AppTextStyles.label,
-            ),
-          ]),
+          Row(
+            children: [
+              const Icon(
+                Icons.people_outline,
+                size: 16,
+                color: AppColors.textSecondary,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                '${plan.memberIds.length} member${plan.memberIds.length == 1 ? "" : "s"}',
+                style: AppTextStyles.label,
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -488,13 +528,19 @@ class _RSVPSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.event_available, color: AppColors.success, size: 20),
+              const Icon(
+                Icons.event_available,
+                color: AppColors.success,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               Text('RSVPs', style: AppTextStyles.h2),
               const Spacer(),
               Text(
                 '$goingCount Going · $maybeCount Maybe · $notGoingCount Not Going',
-                style: AppTextStyles.label.copyWith(color: AppColors.textSecondary),
+                style: AppTextStyles.label.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
             ],
           ),
@@ -552,8 +598,10 @@ class _RSVPSection extends StatelessWidget {
                     : (status == 'maybe' ? AppColors.warning : AppColors.error);
 
                 return Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -580,7 +628,9 @@ class _RSVPSection extends StatelessWidget {
 
   void _updateRSVP(String status) {
     if (currentUserId == null) return;
-    ref.read(planNotifierProvider.notifier).updateRSVP(plan.planId, currentUserId!, status);
+    ref
+        .read(planNotifierProvider.notifier)
+        .updateRSVP(plan.planId, currentUserId!, status);
   }
 }
 
@@ -627,8 +677,11 @@ class _SectionHeader extends StatelessWidget {
   final String title;
   final IconData icon;
   final Widget? trailing;
-  const _SectionHeader(
-      {required this.title, required this.icon, this.trailing});
+  const _SectionHeader({
+    required this.title,
+    required this.icon,
+    this.trailing,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -665,9 +718,10 @@ class _PollSection extends StatelessWidget {
     if (options.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Text('No date options yet.',
-            style:
-                AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
+        child: Text(
+          'No date options yet.',
+          style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+        ),
       );
     }
     final maxVotes = options.isEmpty
@@ -678,7 +732,8 @@ class _PollSection extends StatelessWidget {
       children: options.map((option) {
         final hasVoted =
             currentUserId != null && option.voterIds.contains(currentUserId);
-        final isWinner = plan.status == PlanStatus.confirmed &&
+        final isWinner =
+            plan.status == PlanStatus.confirmed &&
             option.voteCount == maxVotes &&
             maxVotes > 0;
 
@@ -704,12 +759,16 @@ class _PollSection extends StatelessWidget {
                 title: const Text('Remove date option?'),
                 actions: [
                   TextButton(
-                      onPressed: () => Navigator.pop(ctx, false),
-                      child: const Text('Cancel')),
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: const Text('Cancel'),
+                  ),
                   TextButton(
-                      onPressed: () => Navigator.pop(ctx, true),
-                      child: const Text('Remove',
-                          style: TextStyle(color: AppColors.error))),
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: const Text(
+                      'Remove',
+                      style: TextStyle(color: AppColors.error),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -720,31 +779,36 @@ class _PollSection extends StatelessWidget {
             },
             child: GestureDetector(
               onTap: plan.status == PlanStatus.polling && currentUserId != null
-                    ? () async {
-                        if (currentUserId != null) {
-                          await ref
-                              .read(planNotifierProvider.notifier)
-                              .voteOnOption(
-                                  planId, option.optionId, currentUserId!);
-                        }
+                  ? () async {
+                      if (currentUserId != null) {
+                        await ref
+                            .read(planNotifierProvider.notifier)
+                            .voteOnOption(
+                              planId,
+                              option.optionId,
+                              currentUserId!,
+                            );
                       }
+                    }
                   : null,
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 12),
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: hasVoted
                       ? AppColors.accent.withValues(alpha: 0.15)
                       : isWinner
-                          ? AppColors.success.withValues(alpha: 0.15)
-                          : AppColors.surface,
+                      ? AppColors.success.withValues(alpha: 0.15)
+                      : AppColors.surface,
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
                     color: hasVoted
                         ? AppColors.accent
                         : isWinner
-                            ? AppColors.success
-                            : AppColors.divider,
+                        ? AppColors.success
+                        : AppColors.divider,
                     width: 1.5,
                   ),
                 ),
@@ -763,19 +827,23 @@ class _PollSection extends StatelessWidget {
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: hasVoted
                             ? AppColors.accent
                             : isWinner
-                                ? AppColors.success
-                                : AppColors.divider,
+                            ? AppColors.success
+                            : AppColors.divider,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         '${option.voteCount}',
                         style: AppTextStyles.label.copyWith(
-                            color: Colors.white, fontWeight: FontWeight.w700),
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ],
@@ -807,9 +875,10 @@ class _ItinerarySection extends StatelessWidget {
     if (items.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Text('No stops added yet.',
-            style:
-                AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
+        child: Text(
+          'No stops added yet.',
+          style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+        ),
       );
     }
 
@@ -851,7 +920,10 @@ class _ItinerarySection extends StatelessWidget {
                         ref
                             .read(planNotifierProvider.notifier)
                             .toggleItineraryItemCompletion(
-                                planId, item.itemId, val);
+                              planId,
+                              item.itemId,
+                              val,
+                            );
                       }
                     },
                     activeColor: AppColors.accent,
@@ -873,12 +945,8 @@ class _ItinerarySection extends StatelessWidget {
                                 : AppColors.textPrimary,
                           ),
                         ),
-                        if (item.location != null &&
-                            item.location!.isNotEmpty)
-                          Text(
-                            item.location!,
-                            style: AppTextStyles.label,
-                          ),
+                        if (item.location != null && item.location!.isNotEmpty)
+                          Text(item.location!, style: AppTextStyles.label),
                       ],
                     ),
                   ),
@@ -931,9 +999,10 @@ class _ExpenseSection extends StatelessWidget {
     if (expenses.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Text('No expenses yet.',
-            style:
-                AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
+        child: Text(
+          'No expenses yet.',
+          style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+        ),
       );
     }
     return Column(
@@ -963,15 +1032,20 @@ class _ExpenseSection extends StatelessWidget {
               builder: (ctx) => AlertDialog(
                 title: const Text('Delete expense?'),
                 content: Text(
-                    'Remove "${expense.title}" (Rs.${expense.amount.toStringAsFixed(2)})?'),
+                  'Remove "${expense.title}" (Rs.${expense.amount.toStringAsFixed(2)})?',
+                ),
                 actions: [
                   TextButton(
-                      onPressed: () => Navigator.pop(ctx, false),
-                      child: const Text('Cancel')),
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: const Text('Cancel'),
+                  ),
                   TextButton(
-                      onPressed: () => Navigator.pop(ctx, true),
-                      child: const Text('Delete',
-                          style: TextStyle(color: AppColors.error))),
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: const Text(
+                      'Delete',
+                      style: TextStyle(color: AppColors.error),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -1003,11 +1077,12 @@ class _ExpenseSection extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(expense.title,
-                              style: AppTextStyles.body
-                                  .copyWith(fontSize: 14),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis),
+                          Text(
+                            expense.title,
+                            style: AppTextStyles.body.copyWith(fontSize: 14),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                           Text(
                             expense.splitAmounts.isNotEmpty
                                 ? 'Custom split · paid by ${_memberName(expense.paidBy)}'
@@ -1015,9 +1090,12 @@ class _ExpenseSection extends StatelessWidget {
                             style: AppTextStyles.label,
                           ),
                           if (expense.splitAmounts.containsKey(currentUserId))
-                             Text(
+                            Text(
                               'Your share: Rs.${expense.splitAmounts[currentUserId]!.toStringAsFixed(2)}',
-                              style: AppTextStyles.label.copyWith(color: AppColors.accent, fontWeight: FontWeight.bold),
+                              style: AppTextStyles.label.copyWith(
+                                color: AppColors.accent,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                         ],
                       ),
@@ -1028,12 +1106,11 @@ class _ExpenseSection extends StatelessWidget {
                       children: [
                         Text(
                           'Rs.${expense.amount.toStringAsFixed(2)}',
-                          style: AppTextStyles.mono
-                              .copyWith(fontWeight: FontWeight.w700),
+                          style: AppTextStyles.mono.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                        if (!isPayer &&
-                            !isSettled &&
-                            currentUserId != null)
+                        if (!isPayer && !isSettled && currentUserId != null)
                           GestureDetector(
                             onTap: () async {
                               try {
@@ -1041,11 +1118,16 @@ class _ExpenseSection extends StatelessWidget {
                                   await ref
                                       .read(planNotifierProvider.notifier)
                                       .markExpenseSettled(
-                                          planId, expense.expenseId, currentUserId!);
+                                        planId,
+                                        expense.expenseId,
+                                        currentUserId!,
+                                      );
                                 }
 
                                 // Look up payer's UPI ID from the members list
-                                final payer = members?.where((m) => m.uid == expense.paidBy).firstOrNull;
+                                final payer = members
+                                    ?.where((m) => m.uid == expense.paidBy)
+                                    .firstOrNull;
                                 final payerUpi = payer?.upiId;
                                 if (payerUpi != null && payerUpi.isNotEmpty) {
                                   try {
@@ -1053,7 +1135,8 @@ class _ExpenseSection extends StatelessWidget {
                                       upiId: payerUpi,
                                       payeeName: _memberName(expense.paidBy),
                                       amount: expense.perPersonAmount,
-                                      note: 'Squad: $planTitle - ${expense.title}',
+                                      note:
+                                          'Squad: $planTitle - ${expense.title}',
                                     );
                                   } catch (_) {
                                     // UPI launch failure is non-fatal
@@ -1101,10 +1184,7 @@ class _BalanceSummary extends StatelessWidget {
   final PlanBalance balance;
   final List<UserModel>? members;
 
-  const _BalanceSummary({
-    required this.balance,
-    required this.members,
-  });
+  const _BalanceSummary({required this.balance, required this.members});
 
   String _memberName(String uid) {
     if (members == null) return 'Member ${uid.substring(0, 4)}';
@@ -1172,8 +1252,9 @@ class _BalanceSummary extends StatelessWidget {
                     Text(
                       '${peerBal >= 0 ? "+" : "-"} Rs.${peerBal.abs().toStringAsFixed(2)}',
                       style: AppTextStyles.mono.copyWith(
-                        color:
-                            peerBal >= 0 ? AppColors.success : AppColors.error,
+                        color: peerBal >= 0
+                            ? AppColors.success
+                            : AppColors.error,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),

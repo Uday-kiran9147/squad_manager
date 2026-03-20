@@ -66,9 +66,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   Future<void> _submit(List<UserModel>? members) async {
     if (!_formKey.currentState!.validate()) return;
     if (_paidBy == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select who paid')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select who paid')));
       return;
     }
 
@@ -90,7 +90,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
 
     if (_splitAmong.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least one person to split with')),
+        const SnackBar(
+          content: Text('Please select at least one person to split with'),
+        ),
       );
       return;
     }
@@ -103,7 +105,8 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       splitAmounts = {};
       double runningTotal = 0;
       for (var id in _splitAmong) {
-        final val = double.tryParse(_exactAmountControllers[id]?.text ?? '0') ?? 0;
+        final val =
+            double.tryParse(_exactAmountControllers[id]?.text ?? '0') ?? 0;
         splitAmounts[id] = val;
         runningTotal += val;
       }
@@ -112,7 +115,8 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                'Individual shares (Rs.${runningTotal.toStringAsFixed(2)}) must sum up to the total (Rs.${totalAmount.toStringAsFixed(2)})'),
+              'Individual shares (Rs.${runningTotal.toStringAsFixed(2)}) must sum up to the total (Rs.${totalAmount.toStringAsFixed(2)})',
+            ),
             backgroundColor: AppColors.error,
           ),
         );
@@ -121,7 +125,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     }
 
     try {
-      await ref.read(planNotifierProvider.notifier).addExpense(
+      await ref
+          .read(planNotifierProvider.notifier)
+          .addExpense(
             planId: widget.planId,
             title: _titleController.text.trim(),
             amount: totalAmount,
@@ -135,8 +141,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Error adding expense: $e'),
-              backgroundColor: AppColors.error),
+            content: Text('Error adding expense: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     }
@@ -158,8 +165,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
           _initDefaults(plan.memberIds);
 
           // Resolve member display names
-          final membersAsync =
-              ref.watch(planMembersProvider(plan.memberIds));
+          final membersAsync = ref.watch(planMembersProvider(plan.memberIds));
 
           String memberLabel(String uid, List<UserModel>? members) {
             if (uid == currentUid) return 'You';
@@ -189,8 +195,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _amountController,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     decoration: const InputDecoration(
                       labelText: 'Amount (Rs.)',
                       hintText: '0.00',
@@ -198,7 +205,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                     ),
                     validator: Validators.validateAmount,
                   ),
-                   const SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text('Category:', style: AppTextStyles.h2),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<ExpenseCategory>(
@@ -213,7 +220,8 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                       if (val != null) setState(() => _category = val);
                     },
                     decoration: const InputDecoration(
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12)),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                    ),
                   ),
                   const SizedBox(height: 24),
                   Text('Paid by:', style: AppTextStyles.h2),
@@ -225,10 +233,11 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                         value: id,
                         child: Text(memberLabel(id, members)),
                       );
-                    }).toList(), 
+                    }).toList(),
                     onChanged: (val) => setState(() => _paidBy = val),
                     decoration: const InputDecoration(
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12)),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                    ),
                   ),
                   const SizedBox(height: 24),
                   Row(
@@ -238,9 +247,13 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                       SegmentedButton<SplitMode>(
                         segments: const [
                           ButtonSegment(
-                              value: SplitMode.equal, label: Text('Equal')),
+                            value: SplitMode.equal,
+                            label: Text('Equal'),
+                          ),
                           ButtonSegment(
-                              value: SplitMode.exact, label: Text('Exact')),
+                            value: SplitMode.exact,
+                            label: Text('Exact'),
+                          ),
                         ],
                         selected: {_splitMode},
                         onSelectionChanged: (val) {
@@ -285,17 +298,24 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                           ),
                           if (isSelected && _splitMode == SplitMode.exact)
                             Padding(
-                              padding: const EdgeInsets.only(left: 48, bottom: 8),
+                              padding: const EdgeInsets.only(
+                                left: 48,
+                                bottom: 8,
+                              ),
                               child: TextFormField(
                                 controller: _exactAmountControllers[memberId],
-                                keyboardType: const TextInputType.numberWithOptions(
-                                    decimal: true),
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
                                 decoration: const InputDecoration(
                                   prefixText: 'Rs. ',
                                   isDense: true,
                                   labelText: 'Share',
                                 ),
-                                style: AppTextStyles.body.copyWith(fontSize: 14),
+                                style: AppTextStyles.body.copyWith(
+                                  fontSize: 14,
+                                ),
                               ),
                             ),
                         ],
@@ -310,7 +330,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                             height: 20,
                             width: 20,
                             child: CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2),
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
                           )
                         : const Text('Add Expense'),
                   ),

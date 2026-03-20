@@ -70,7 +70,8 @@ final routerProvider = Provider<GoRouter>((ref) {
                     pageBuilder: (context, state) {
                       final planId = state.pathParameters['planId']!;
                       return MaterialPage(
-                          child: ConfirmPlanScreen(planId: planId));
+                        child: ConfirmPlanScreen(planId: planId),
+                      );
                     },
                   ),
                   GoRoute(
@@ -78,7 +79,8 @@ final routerProvider = Provider<GoRouter>((ref) {
                     pageBuilder: (context, state) {
                       final planId = state.pathParameters['planId']!;
                       return MaterialPage(
-                          child: AddExpenseScreen(planId: planId));
+                        child: AddExpenseScreen(planId: planId),
+                      );
                     },
                   ),
                 ],

@@ -47,9 +47,9 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
   void _handleAuthState() {
     final authState = ref.read(authNotifierProvider);
     if (authState.error != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(authState.error!)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(authState.error!)));
     }
   }
 
@@ -83,8 +83,9 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
                   ),
                   keyboardType: TextInputType.emailAddress,
                   enabled: !authState.isLoading,
-                  validator: (value) =>
-                      value != null && value.contains('@') ? null : 'Invalid email',
+                  validator: (value) => value != null && value.contains('@')
+                      ? null
+                      : 'Invalid email',
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -127,16 +128,22 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
                   const SizedBox(height: 16),
                   OutlinedButton.icon(
                     onPressed: _signInWithGoogle,
-                    style: OutlinedButton.styleFrom(padding: const EdgeInsets.all(16)),
-                    icon: const Icon(Icons.login), // Replace with Google icon if available
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.all(16),
+                    ),
+                    icon: const Icon(
+                      Icons.login,
+                    ), // Replace with Google icon if available
                     label: const Text('Continue with Google'),
                   ),
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: () => setState(() => _isLogin = !_isLogin),
-                    child: Text(_isLogin
-                        ? 'Create an account'
-                        : 'Already have an account? Login'),
+                    child: Text(
+                      _isLogin
+                          ? 'Create an account'
+                          : 'Already have an account? Login',
+                    ),
                   ),
                 ],
               ],

@@ -68,20 +68,22 @@ class _ConfirmPlanScreenState extends ConsumerState<ConfirmPlanScreen> {
 
   Future<void> _confirmPlan() async {
     if (_selectedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a date')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a date')));
       return;
     }
     if (_venueController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a venue')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please enter a venue')));
       return;
     }
 
     try {
-      await ref.read(planNotifierProvider.notifier).confirmPlan(
+      await ref
+          .read(planNotifierProvider.notifier)
+          .confirmPlan(
             widget.planId,
             _selectedDate!,
             _venueController.text.trim(),
@@ -91,8 +93,9 @@ class _ConfirmPlanScreenState extends ConsumerState<ConfirmPlanScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Error confirming plan: $e'),
-              backgroundColor: AppColors.error),
+            content: Text('Error confirming plan: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     }
@@ -121,15 +124,19 @@ class _ConfirmPlanScreenState extends ConsumerState<ConfirmPlanScreen> {
               error: (e, _) => Text('Error loading options: $e'),
               data: (options) {
                 if (options.isEmpty) {
-                  return Text('No poll options available.',
-                      style: AppTextStyles.body
-                          .copyWith(color: AppColors.textSecondary));
+                  return Text(
+                    'No poll options available.',
+                    style: AppTextStyles.body.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  );
                 }
                 final sorted = List<PollOption>.from(options)
                   ..sort((a, b) => b.voteCount.compareTo(a.voteCount));
                 return Column(
                   children: sorted.map((option) {
-                    final isSelected = _selectedDate != null &&
+                    final isSelected =
+                        _selectedDate != null &&
                         _selectedDate!.isAtSameMomentAs(option.dateTime);
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 8),
@@ -137,7 +144,9 @@ class _ConfirmPlanScreenState extends ConsumerState<ConfirmPlanScreen> {
                         onTap: () => _selectFromPollOption(option),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? AppColors.accent.withValues(alpha: 0.15)
@@ -154,14 +163,17 @@ class _ConfirmPlanScreenState extends ConsumerState<ConfirmPlanScreen> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  DateFormat('EEE, d MMM h:mm a')
-                                      .format(option.dateTime),
+                                  DateFormat(
+                                    'EEE, d MMM h:mm a',
+                                  ).format(option.dateTime),
                                   style: AppTextStyles.body,
                                 ),
                               ),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: isSelected
                                       ? AppColors.accent
@@ -170,8 +182,9 @@ class _ConfirmPlanScreenState extends ConsumerState<ConfirmPlanScreen> {
                                 ),
                                 child: Text(
                                   '${option.voteCount} votes',
-                                  style: AppTextStyles.label
-                                      .copyWith(color: Colors.white),
+                                  style: AppTextStyles.label.copyWith(
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ],
@@ -204,13 +217,16 @@ class _ConfirmPlanScreenState extends ConsumerState<ConfirmPlanScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.calendar_today_outlined,
-                        color: AppColors.textSecondary),
+                    const Icon(
+                      Icons.calendar_today_outlined,
+                      color: AppColors.textSecondary,
+                    ),
                     const SizedBox(width: 12),
                     Text(
                       _selectedDate != null
-                          ? DateFormat('EEE, d MMM yyyy h:mm a')
-                              .format(_selectedDate!)
+                          ? DateFormat(
+                              'EEE, d MMM yyyy h:mm a',
+                            ).format(_selectedDate!)
                           : 'Select date & time',
                       style: AppTextStyles.body.copyWith(
                         color: _selectedDate != null
@@ -229,8 +245,10 @@ class _ConfirmPlanScreenState extends ConsumerState<ConfirmPlanScreen> {
               controller: _venueController,
               decoration: const InputDecoration(
                 hintText: 'e.g., Banjara Hills, Hyderabad',
-                prefixIcon: Icon(Icons.place_outlined,
-                    color: AppColors.textSecondary),
+                prefixIcon: Icon(
+                  Icons.place_outlined,
+                  color: AppColors.textSecondary,
+                ),
               ),
             ),
             const SizedBox(height: 32),
@@ -241,7 +259,9 @@ class _ConfirmPlanScreenState extends ConsumerState<ConfirmPlanScreen> {
                       height: 20,
                       width: 20,
                       child: CircularProgressIndicator(
-                          color: Colors.white, strokeWidth: 2),
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
                     )
                   : const Text('Confirm Plan'),
             ),

@@ -24,10 +24,13 @@ class UpiUtils {
       amount: amount,
       note: note,
     );
-    
+
     final uri = Uri.parse(link);
     try {
-      final success = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      final success = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
       if (!success) {
         throw 'Could not launch UPI app. Please ensure you have a UPI app installed.';
       }

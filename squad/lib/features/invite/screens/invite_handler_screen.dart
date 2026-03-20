@@ -36,8 +36,9 @@ class _InviteHandlerScreenState extends ConsumerState<InviteHandlerScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Error joining plan: $e'),
-              backgroundColor: AppColors.error),
+            content: Text('Error joining plan: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     }
@@ -54,8 +55,9 @@ class _InviteHandlerScreenState extends ConsumerState<InviteHandlerScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Error joining as guest: $e'),
-              backgroundColor: AppColors.error),
+            content: Text('Error joining as guest: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     }
@@ -127,21 +129,27 @@ class _InviteHandlerScreenState extends ConsumerState<InviteHandlerScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.celebration_outlined,
-                      size: 80, color: AppColors.accent),
+                  const Icon(
+                    Icons.celebration_outlined,
+                    size: 80,
+                    color: AppColors.accent,
+                  ),
                   const SizedBox(height: 24),
                   Text("You're invited to", style: AppTextStyles.body),
                   const SizedBox(height: 8),
-                  Text(plan.title,
-                      style: AppTextStyles.h1,
-                      textAlign: TextAlign.center),
+                  Text(
+                    plan.title,
+                    style: AppTextStyles.h1,
+                    textAlign: TextAlign.center,
+                  ),
                   if (plan.description != null &&
                       plan.description!.isNotEmpty) ...[
                     const SizedBox(height: 12),
                     Text(
                       plan.description!,
-                      style: AppTextStyles.body
-                          .copyWith(color: AppColors.textSecondary),
+                      style: AppTextStyles.body.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -151,8 +159,7 @@ class _InviteHandlerScreenState extends ConsumerState<InviteHandlerScreen> {
                     child: ElevatedButton(
                       onPressed: isLoading ? null : _joinPlan,
                       child: isLoading
-                          ? const CircularProgressIndicator(
-                              color: Colors.white)
+                          ? const CircularProgressIndicator(color: Colors.white)
                           : const Text('Join Squad Plan'),
                     ),
                   ),
