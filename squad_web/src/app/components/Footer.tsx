@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 
 export default function Footer() {
   return (
@@ -43,6 +43,7 @@ export default function Footer() {
               <li><Link href="/terms">Terms of Service</Link></li>
               <li><Link href="/terms#privacy">Privacy</Link></li>
               <li><Link href="/terms#refund">Refund Policy</Link></li>
+              <li><Link href="/child-safety">Child Safety</Link></li>
             </ul>
           </div>
         </div>
