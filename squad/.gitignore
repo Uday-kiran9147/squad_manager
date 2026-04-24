@@ -1,3 +1,4 @@
+.env
 *.g.dart
 *.freezed.dart
 # Miscellaneous
