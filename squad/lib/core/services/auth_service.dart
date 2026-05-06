@@ -121,13 +121,28 @@ class AuthService {
         await userCredential.user!.reload();
         final updatedUser = _auth.currentUser;
         if (updatedUser != null) {
-          await _updateUserData(updatedUser);
+          // Explicitly pass displayName in case user.displayName hasn't
+          // propagated yet after reload — avoids null being written to Firestore.
+          await _updateUserDataWithName(updatedUser, displayName);
         }
       }
       return userCredential;
     } catch (e) {
       throw _toAuthException(e);
     }
+  }
+
+  /// Internal helper that writes user data with an explicit override for displayName.
+  Future<void> _updateUserDataWithName(User user, String displayName) async {
+    final userRef = _firestore.collection('squadusers').doc(user.uid);
+    await userRef.set({
+      'uid': user.uid,
+      'email': user.email,
+      'displayName': user.displayName ?? displayName,
+      'photoURL': user.photoURL,
+      'lastSignIn': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   /// Sign out current user

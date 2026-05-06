@@ -6,6 +6,8 @@ import 'package:squad/core/providers.dart';
 import 'package:squad/core/theme/app_colors.dart';
 import 'package:squad/core/theme/app_text_styles.dart';
 import 'package:squad/core/utils/validators.dart';
+import 'package:squad/features/auth/providers/auth_provider.dart'
+    hide authStateProvider, authServiceProvider;
 import 'package:squad/features/profile/providers/profile_provider.dart';
 import 'package:squad/core/widgets/feedback_sheet.dart';
 
@@ -127,6 +129,62 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isAnonymous =
+        ref.watch(authStateProvider).value?.isAnonymous ?? false;
+
+    // Guest users have no real profile — show a prompt to sign up instead
+    // of exposing a form that would write data for a throwaway account.
+    if (isAnonymous) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('My Profile'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout_rounded),
+              onPressed: () => ref.read(authServiceProvider).signOut(),
+              tooltip: 'Exit Guest Mode',
+            ),
+          ],
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.person_off_outlined,
+                  size: 80,
+                  color: AppColors.textSecondary,
+                ),
+                const SizedBox(height: 24),
+                Text('You\'re a Guest', style: AppTextStyles.h1),
+                const SizedBox(height: 12),
+                Text(
+                  'Create a free account to save your profile, sync plans across devices, and collaborate with friends.',
+                  style: AppTextStyles.body.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    ref.read(authNotifierProvider.notifier).signOut();
+                  },
+                  icon: const Icon(Icons.login_rounded),
+                  label: const Text('Sign In / Create Account'),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 50),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     final userAsync = ref.watch(currentUserProvider);
     final isSaving = ref.watch(profileNotifierProvider).isLoading;
 
@@ -192,7 +250,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const SizedBox(height: 16),
                   Center(
                     child: Text(
-                      user.email,
+                      user.email ?? 'Guest User',
                       style: AppTextStyles.label.copyWith(
                         color: AppColors.textSecondary,
                         fontSize: 16,
@@ -325,24 +383,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const SizedBox(height: 16),
                   _buildFieldLabel('Danger Zone'),
                   const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: isSaving ? null : _deleteAccount,
-                    icon: const Icon(
-                      Icons.delete_forever_rounded,
-                      color: AppColors.error,
-                    ),
-                    label: const Text(
-                      'Delete Account',
-                      style: TextStyle(color: AppColors.error),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: const BorderSide(color: AppColors.error),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  // Delete Account is only available for real (non-anonymous) accounts.
+                  // Anonymous users cannot re-authenticate so the Firebase delete
+                  // call would throw requires-recent-login.
+                  if (!isAnonymous)
+                    OutlinedButton.icon(
+                      onPressed: isSaving ? null : _deleteAccount,
+                      icon: const Icon(
+                        Icons.delete_forever_rounded,
+                        color: AppColors.error,
+                      ),
+                      label: const Text(
+                        'Delete Account',
+                        style: TextStyle(color: AppColors.error),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: const BorderSide(color: AppColors.error),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
-                  ),
                   const SizedBox(height: 24),
                   if (_appVersion.isNotEmpty)
                     Center(

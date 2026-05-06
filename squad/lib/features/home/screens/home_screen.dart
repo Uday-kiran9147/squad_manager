@@ -5,17 +5,21 @@ import 'package:intl/intl.dart';
 import 'package:squad/core/providers.dart';
 import 'package:squad/core/theme/app_colors.dart';
 import 'package:squad/core/theme/app_text_styles.dart';
+import 'package:squad/features/auth/providers/auth_provider.dart' hide authStateProvider;
 import 'package:squad/features/plan/models/plan.dart';
 import 'package:squad/core/widgets/feedback_sheet.dart';
+import 'package:squad/features/plan/providers/plan_provider.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentUserId = ref.watch(currentUserIdProvider);
+    final authState = ref.watch(authStateProvider);
+    final user = authState.value;
+    final isAnonymous = user?.isAnonymous ?? false;
 
-    if (currentUserId == null) {
+    if (user == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
@@ -23,7 +27,33 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Squad', style: AppTextStyles.h1),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Squad', style: AppTextStyles.h1),
+            if (isAnonymous) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: AppColors.warning.withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Text(
+                  'Guest',
+                  style: AppTextStyles.label.copyWith(
+                    color: AppColors.warning,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.favorite_border_rounded),
@@ -32,8 +62,14 @@ class HomeScreen extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.account_circle_outlined),
-            onPressed: () => context.push('/profile'),
-            tooltip: 'Profile',
+            onPressed: () {
+              if (isAnonymous) {
+                _showGuestOptions(context, ref);
+              } else {
+                context.push('/profile');
+              }
+            },
+            tooltip: isAnonymous ? 'Guest Options' : 'Profile',
           ),
         ],
       ),
@@ -57,10 +93,88 @@ class HomeScreen extends ConsumerWidget {
         ),
         data: (plans) {
           if (plans.isEmpty) {
-            return _EmptyState(
-              onCreatePlan: () {
-                context.go('/home/create-plan');
-              },
+            return Column(
+              children: [
+                if (isAnonymous)
+                  Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.accent.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.accent.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Welcome to Squad! 👋',
+                          style: AppTextStyles.h2.copyWith(
+                            color: AppColors.accent,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'You are exploring as a guest. Sign in to sync your plans across devices.',
+                          style: AppTextStyles.body.copyWith(fontSize: 13),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () => _showGuestOptions(context, ref),
+                              style: ElevatedButton.styleFrom(
+                                minimumSize: const Size(120, 36),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                backgroundColor: AppColors.surface,
+                                foregroundColor: AppColors.textPrimary,
+                              ),
+                              child: const Text('Sign In / Up'),
+                            ),
+                            const SizedBox(width: 12),
+                            ElevatedButton(
+                              onPressed: () {
+                                if (user.uid.isNotEmpty) {
+                                  ref
+                                      .read(planNotifierProvider.notifier)
+                                      .createSamplePlan(user.uid);
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                minimumSize: const Size(120, 36),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                              ),
+                              child: const Text('Try Demo Plan'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                Expanded(
+                  child: _EmptyState(
+                    isGuest: isAnonymous,
+                    onCreatePlan: () {
+                      context.go('/home/create-plan');
+                    },
+                    onTryDemo: () {
+                      if (user.uid.isNotEmpty) {
+                        ref
+                            .read(planNotifierProvider.notifier)
+                            .createSamplePlan(user.uid);
+                      }
+                    },
+                  ),
+                ),
+              ],
             );
           }
           return RefreshIndicator(
@@ -90,10 +204,77 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
+/// Shows a bottom sheet for guest users with clear options and a data-loss warning.
+void _showGuestOptions(BuildContext context, WidgetRef ref) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: AppColors.surface,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+    builder: (ctx) => Padding(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.divider,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text('Exploring as Guest', style: AppTextStyles.h2),
+          const SizedBox(height: 8),
+          Text(
+            'Sign up to save your plans permanently and sync them across devices. Plans created as a guest will be lost if you exit.',
+            style: AppTextStyles.body.copyWith(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ref.read(authNotifierProvider.notifier).signOut();
+            },
+            icon: const Icon(Icons.login_rounded),
+            label: const Text('Sign In / Create Account'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              side: BorderSide(color: AppColors.divider),
+            ),
+            child: const Text('Continue as Guest'),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 class _EmptyState extends StatelessWidget {
   final VoidCallback onCreatePlan;
+  final VoidCallback onTryDemo;
+  final bool isGuest;
 
-  const _EmptyState({required this.onCreatePlan});
+  const _EmptyState({
+    required this.onCreatePlan,
+    required this.onTryDemo,
+    this.isGuest = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -124,6 +305,17 @@ class _EmptyState extends StatelessWidget {
               icon: const Icon(Icons.add),
               label: const Text('Create a Plan'),
             ),
+            if (isGuest) ...[
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: onTryDemo,
+                icon: const Icon(Icons.auto_awesome_outlined),
+                label: const Text('Try a Sample Plan'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(200, 44),
+                ),
+              ),
+            ],
           ],
         ),
       ),

@@ -32,6 +32,79 @@ class PlanNotifier extends AsyncNotifier<void> {
     }
   }
 
+  /// Creates a rich sample plan for users to explore all features.
+  Future<void> createSamplePlan(String userId) async {
+    state = const AsyncLoading();
+    try {
+      final now = DateTime.now();
+      final plan = Plan(
+        planId: '',
+        title: 'Sample: Goa Trip 🌴',
+        description:
+            'A sample plan to show you how Squad works. Explore the polls, expenses, and itinerary!',
+        createdBy: userId,
+        status: PlanStatus.confirmed,
+        location: 'Goa, India',
+        confirmedDate: now.add(const Duration(days: 30)),
+        confirmedVenue: 'Calangute Beach',
+        // Only use the real userId — no fake member IDs that would cause
+        // Firestore lookup failures and ghost "Friend" entries in the UI.
+        memberIds: [userId],
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      final planId = await _service.createPlan(plan);
+
+      // Add Poll Options
+      await _service.addPollOption(planId, now.add(const Duration(days: 30)));
+      await _service.addPollOption(planId, now.add(const Duration(days: 37)));
+
+      // Add Itinerary
+      await _service.addItineraryItem(
+        planId,
+        ItineraryItem(
+          itemId: '',
+          title: 'Flight Arrival',
+          location: 'GOX Airport',
+          time: now.add(const Duration(days: 30, hours: 10)),
+        ),
+      );
+      await _service.addItineraryItem(
+        planId,
+        ItineraryItem(
+          itemId: '',
+          title: 'Check-in @ Resort',
+          location: 'Taj Exotica',
+          time: now.add(const Duration(days: 30, hours: 14)),
+        ),
+      );
+
+      // Add Expenses — all paid by & split among the guest only.
+      await _service.addExpense(
+        planId: planId,
+        title: 'Resort Booking',
+        amount: 15000,
+        paidBy: userId,
+        splitAmong: [userId],
+        category: ExpenseCategory.stay,
+      );
+      await _service.addExpense(
+        planId: planId,
+        title: 'Car Rental',
+        amount: 4500,
+        paidBy: userId,
+        splitAmong: [userId],
+        category: ExpenseCategory.transport,
+      );
+
+      state = const AsyncData(null);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    }
+  }
+
   /// Partial update for plan metadata (title / description / location).
   Future<void> updatePlan(
     String planId, {

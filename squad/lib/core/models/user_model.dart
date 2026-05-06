@@ -8,7 +8,7 @@ part 'user_model.g.dart';
 class UserModel with _$UserModel {
   const factory UserModel({
     required String uid,
-    required String email,
+    String? email,
     String? displayName,
     String? phone,
     String? photoURL,

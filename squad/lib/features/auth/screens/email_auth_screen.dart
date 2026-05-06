@@ -145,6 +145,29 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
                           : 'Already have an account? Login',
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: authState.isLoading
+                        ? null
+                        : () {
+                            ref
+                                .read(authNotifierProvider.notifier)
+                                .signInAnonymously('Guest');
+                          },
+                    child: authState.isLoading
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text(
+                            'Explore as Guest',
+                            style: TextStyle(
+                              decoration: TextDecoration.underline,
+                              color: Colors.white70,
+                            ),
+                          ),
+                  ),
                 ],
               ],
             ),
