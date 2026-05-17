@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:squad/core/providers.dart';
-import 'package:squad/features/auth/screens/email_auth_screen.dart';
-import 'package:squad/features/home/screens/home_screen.dart';
-import 'package:squad/features/plan/screens/create_plan_screen.dart';
-import 'package:squad/features/plan/screens/add_expense_screen.dart';
-import 'package:squad/features/plan/screens/confirm_plan_screen.dart';
-import 'package:squad/features/invite/screens/invite_handler_screen.dart';
-import 'package:squad/features/plan/screens/plan_detail_screen.dart';
-import 'package:squad/features/profile/screens/profile_screen.dart';
+import 'package:squad/features/auth/presentation/pages/email_auth_screen.dart';
+import 'package:squad/features/home/presentation/pages/home_screen.dart';
+import 'package:squad/features/plan/presentation/pages/create_plan_screen.dart';
+import 'package:squad/features/plan/presentation/pages/add_expense_screen.dart';
+import 'package:squad/features/plan/presentation/pages/confirm_plan_screen.dart';
+import 'package:squad/features/invite/presentation/pages/invite_handler_screen.dart';
+import 'package:squad/features/plan/presentation/pages/plan_detail_screen.dart';
+import 'package:squad/features/profile/presentation/pages/profile_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authNotifier = ref.read(routerNotifierProvider);

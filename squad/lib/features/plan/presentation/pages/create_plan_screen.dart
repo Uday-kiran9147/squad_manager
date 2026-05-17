@@ -83,7 +83,7 @@ class _CreatePlanScreenState extends ConsumerState<CreatePlanScreen> {
       return;
     }
 
-    final user = ref.read(authServiceProvider).currentUser;
+    final user = ref.read(authRepositoryProvider).currentUser;
     if (user == null) return;
 
     final plan = Plan(

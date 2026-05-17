@@ -1,14 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/user_model.dart';
+import '../../../auth/domain/models/user_model.dart';
+import '../../domain/repositories/user_repository.dart';
 
-class UserService {
+class UserRepositoryImpl implements UserRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String _collection = 'squadusers';
 
+  @override
   Future<void> createUser(UserModel user) async {
     await _firestore.collection(_collection).doc(user.uid).set(user.toJson());
   }
 
+  @override
   Future<UserModel?> getUser(String uid) async {
     final doc = await _firestore.collection(_collection).doc(uid).get();
     final data = doc.data();
@@ -22,6 +25,7 @@ class UserService {
     return null;
   }
 
+  @override
   Stream<UserModel?> watchUser(String uid) {
     return _firestore.collection(_collection).doc(uid).snapshots().map((doc) {
       final data = doc.data();
@@ -36,10 +40,12 @@ class UserService {
     });
   }
 
+  @override
   Future<void> updateUser(String uid, Map<String, dynamic> data) async {
     await _firestore.collection(_collection).doc(uid).update(data);
   }
 
+  @override
   Future<List<UserModel>> getUsers(List<String> uids) async {
     if (uids.isEmpty) return [];
 

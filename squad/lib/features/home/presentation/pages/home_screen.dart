@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:squad/core/providers.dart';
 import 'package:squad/core/theme/app_colors.dart';
 import 'package:squad/core/theme/app_text_styles.dart';
-import 'package:squad/features/auth/providers/auth_provider.dart' hide authStateProvider;
+import 'package:squad/features/auth/presentation/providers/auth_provider.dart' hide authStateProvider;
 import 'package:squad/features/plan/models/plan.dart';
 import 'package:squad/core/widgets/feedback_sheet.dart';
 import 'package:squad/features/plan/providers/plan_provider.dart';

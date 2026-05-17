@@ -6,8 +6,8 @@ import 'package:squad/core/providers.dart';
 import 'package:squad/core/theme/app_colors.dart';
 import 'package:squad/core/theme/app_text_styles.dart';
 import 'package:squad/core/utils/validators.dart';
-import 'package:squad/features/auth/providers/auth_provider.dart'
-    hide authStateProvider, authServiceProvider;
+import 'package:squad/features/auth/presentation/providers/auth_provider.dart'
+    hide authStateProvider, authRepositoryProvider;
 import 'package:squad/features/profile/providers/profile_provider.dart';
 import 'package:squad/core/widgets/feedback_sheet.dart';
 
@@ -141,7 +141,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           actions: [
             IconButton(
               icon: const Icon(Icons.logout_rounded),
-              onPressed: () => ref.read(authServiceProvider).signOut(),
+              onPressed: () => ref.read(authRepositoryProvider).signOut(),
               tooltip: 'Exit Guest Mode',
             ),
           ],
@@ -201,7 +201,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded),
-            onPressed: () => ref.read(authServiceProvider).signOut(),
+            onPressed: () => ref.read(authRepositoryProvider).signOut(),
             tooltip: 'Logout',
           ),
         ],

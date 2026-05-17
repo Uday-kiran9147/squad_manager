@@ -4,14 +4,14 @@ import '../models/plan.dart';
 import '../models/expense.dart';
 import '../models/itinerary_item.dart';
 import '../models/plan_balance.dart';
-import 'package:squad/core/services/plan_service.dart';
+import '../domain/repositories/plan_repository.dart';
 
 // ─── PlanNotifier — centralised mutation controller ──────────────────────────
 
 /// Wraps all write operations with AsyncValue loading/error state so screens
 /// never need local [setState] booleans for plan mutations.
 class PlanNotifier extends AsyncNotifier<void> {
-  PlanService get _service => ref.read(planServiceProvider);
+  PlanRepository get _service => ref.read(planRepositoryProvider);
 
   @override
   Future<void> build() async {}

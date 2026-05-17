@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:squad/core/models/user_model.dart';
+import 'package:squad/features/auth/domain/models/user_model.dart';
 import 'package:squad/core/providers.dart';
 import 'package:squad/core/theme/app_colors.dart';
 import 'package:squad/core/theme/app_text_styles.dart';
@@ -15,6 +15,7 @@ import 'package:squad/features/plan/models/itinerary_item.dart';
 import 'package:squad/features/plan/models/plan_balance.dart';
 import 'package:squad/features/plan/providers/plan_provider.dart';
 import 'package:squad/core/utils/calendar_utils.dart';
+import 'package:squad/features/plan/presentation/widgets/ai_itinerary_dialog.dart';
 
 
 class PlanDetailScreen extends ConsumerWidget {
@@ -190,10 +191,25 @@ class PlanDetailScreen extends ConsumerWidget {
                   title: 'Itinerary',
                   icon: Icons.map_outlined,
                   trailing: isOrganiser
-                      ? TextButton(
-                          onPressed: () =>
-                              _showAddItineraryDialog(context, ref, planId),
-                          child: const Text('Add'),
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              onPressed: () =>
+                                  AIItineraryDialog.show(context, plan),
+                              icon: const Icon(
+                                Icons.auto_awesome,
+                                size: 20,
+                                color: AppColors.accent,
+                              ),
+                              tooltip: 'AI Suggest Itinerary',
+                            ),
+                            TextButton(
+                              onPressed: () =>
+                                  _showAddItineraryDialog(context, ref, planId),
+                              child: const Text('Add'),
+                            ),
+                          ],
                         )
                       : null,
                 ),
@@ -804,7 +820,7 @@ class _PollSection extends StatelessWidget {
             ),
             onDismissed: (_) async {
               await ref
-                  .read(planServiceProvider)
+                  .read(planRepositoryProvider)
                   .deletePollOption(planId, option.optionId);
             },
             child: GestureDetector(

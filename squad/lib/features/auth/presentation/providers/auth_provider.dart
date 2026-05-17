@@ -1,14 +1,15 @@
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:firebase_auth/firebase_auth.dart";
-import "../../../core/services/auth_service.dart";
+import "package:squad/features/auth/data/repositories/auth_repository_impl.dart";
+import "package:squad/features/auth/domain/repositories/auth_repository.dart";
 
-final authServiceProvider = Provider<AuthService>((ref) {
-  return AuthService();
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  return AuthRepositoryImpl();
 });
 
 final authStateProvider = StreamProvider<User?>((ref) {
-  final authService = ref.watch(authServiceProvider);
-  return authService.authStateChanges();
+  final authRepository = ref.watch(authRepositoryProvider);
+  return authRepository.authStateChanges();
 });
 
 class AuthState {
@@ -26,14 +27,14 @@ class AuthState {
 }
 
 class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier(this._authService) : super(AuthState());
+  AuthNotifier(this._authRepository) : super(AuthState());
 
-  final AuthService _authService;
+  final AuthRepository _authRepository;
 
   Future<void> signInWithGoogle() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      await _authService.signInWithGoogle();
+      await _authRepository.signInWithGoogle();
       state = state.copyWith(isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -43,7 +44,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> signIn(String email, String password) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      await _authService.signInWithEmail(email, password);
+      await _authRepository.signInWithEmail(email, password);
       state = state.copyWith(isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -53,7 +54,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> signUp(String email, String password) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      await _authService.signUpWithEmail(email, password);
+      await _authRepository.signUpWithEmail(email, password);
       state = state.copyWith(isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -63,7 +64,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> signInAnonymously(String displayName) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      await _authService.signInAnonymously(displayName);
+      await _authRepository.signInAnonymously(displayName);
       state = state.copyWith(isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -73,7 +74,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> signOut() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      await _authService.signOut();
+      await _authRepository.signOut();
       state = state.copyWith(isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -84,6 +85,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
 final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((
   ref,
 ) {
-  final authService = ref.watch(authServiceProvider);
-  return AuthNotifier(authService);
+  final authRepository = ref.watch(authRepositoryProvider);
+  return AuthNotifier(authRepository);
 });

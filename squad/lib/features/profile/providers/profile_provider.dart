@@ -19,7 +19,7 @@ class ProfileNotifier extends AsyncNotifier<void> {
       if (displayName != null) data['displayName'] = displayName;
       if (upiId != null) data['upiId'] = upiId;
       if (phone != null) data['phone'] = phone;
-      await ref.read(userServiceProvider).updateUser(uid, data);
+      await ref.read(userRepositoryProvider).updateUser(uid, data);
       state = const AsyncData(null);
     } catch (e, st) {
       state = AsyncError(e, st);
@@ -30,7 +30,7 @@ class ProfileNotifier extends AsyncNotifier<void> {
   Future<void> deleteAccount() async {
     state = const AsyncLoading();
     try {
-      await ref.read(authServiceProvider).deleteAccount();
+      await ref.read(authRepositoryProvider).deleteAccount();
       state = const AsyncData(null);
     } catch (e, st) {
       state = AsyncError(e, st);

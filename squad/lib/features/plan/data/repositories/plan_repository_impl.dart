@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../features/plan/models/plan.dart';
-import '../../features/plan/models/poll_option.dart';
-import '../../features/plan/models/expense.dart';
-import '../../features/plan/models/itinerary_item.dart';
+import '../../models/plan.dart';
+import '../../models/poll_option.dart';
+import '../../models/expense.dart';
+import '../../models/itinerary_item.dart';
+import '../../domain/repositories/plan_repository.dart';
 
-class PlanService {
+class PlanRepositoryImpl implements PlanRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String _plansCollection = 'plans';
   final String _pollOptionsSubcollection = 'pollOptions';
@@ -378,6 +379,7 @@ class PlanService {
   }
 
   // Delete Plan
+  @override
   Future<void> deletePlan(String planId) async {
     await _firestore.collection(_plansCollection).doc(planId).delete();
   }

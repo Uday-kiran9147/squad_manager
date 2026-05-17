@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:squad/core/models/user_model.dart';
+import 'package:squad/features/auth/domain/models/user_model.dart';
 import 'package:squad/core/providers.dart';
 import 'package:squad/core/theme/app_colors.dart';
 import 'package:squad/core/theme/app_text_styles.dart';
 import 'package:squad/core/utils/validators.dart';
 import 'package:squad/features/plan/providers/plan_provider.dart';
-
 import 'package:squad/features/plan/models/expense.dart';
-
-enum SplitMode { equal, exact }
+import 'package:squad/features/plan/presentation/controllers/add_expense_controller.dart';
 
 class AddExpenseScreen extends ConsumerStatefulWidget {
   final String planId;
@@ -22,137 +20,34 @@ class AddExpenseScreen extends ConsumerStatefulWidget {
 
 class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _amountController = TextEditingController();
-
-  String? _paidBy;
-  List<String> _splitAmong = [];
   bool _initialized = false;
-  ExpenseCategory _category = ExpenseCategory.other;
-  SplitMode _splitMode = SplitMode.equal;
-  final Map<String, TextEditingController> _exactAmountControllers = {};
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _amountController.dispose();
-    for (var controller in _exactAmountControllers.values) {
-      controller.dispose();
-    }
-    super.dispose();
-  }
 
   void _initDefaults(List<String> memberIds) {
     if (_initialized) return;
     _initialized = true;
-    _splitAmong = List.from(memberIds);
-    final currentUid = ref.read(currentUserIdProvider);
-    _paidBy = memberIds.contains(currentUid) ? currentUid : memberIds.first;
-
-    for (var id in memberIds) {
-      _exactAmountControllers[id] = TextEditingController();
-    }
-  }
-
-  void _distributeEqually() {
-    final total = double.tryParse(_amountController.text) ?? 0.0;
-    if (total <= 0 || _splitAmong.isEmpty) return;
-    final share = total / _splitAmong.length;
-    for (var id in _splitAmong) {
-      _exactAmountControllers[id]?.text = share.toStringAsFixed(2);
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(addExpenseControllerProvider.notifier).initDefaults(memberIds);
+    });
   }
 
   Future<void> _submit(List<UserModel>? members) async {
     if (!_formKey.currentState!.validate()) return;
-    if (_paidBy == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please select who paid')));
-      return;
-    }
+    
+    final errorMsg = await ref
+        .read(addExpenseControllerProvider.notifier)
+        .submit(widget.planId, members);
 
-    final payer = members?.where((m) => m.uid == _paidBy).firstOrNull;
-
-    // Skip UPI validation for anonymous (guest) users — they have no UPI ID
-    // by definition and should still be able to record expenses during exploration.
-    final isCurrentUserAnonymous =
-        ref.read(authStateProvider).value?.isAnonymous ?? false;
-
-    if (!isCurrentUserAnonymous &&
-        (payer == null || payer.upiId == null || payer.upiId!.trim().isEmpty)) {
-      final isCurrentUser = payer?.uid == ref.read(currentUserIdProvider);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isCurrentUser
-                ? 'You must add a UPI ID in your profile before adding an expense.'
-                : '${payer?.displayName ?? 'The selected user'} must have a UPI ID to be added as a payer.',
-          ),
-          backgroundColor: AppColors.error,
-        ),
-      );
-      return;
-    }
-
-    if (_splitAmong.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select at least one person to split with'),
-        ),
-      );
-      return;
-    }
-
-    final totalAmount = double.tryParse(_amountController.text.trim());
-    if (totalAmount == null) return;
-
-    Map<String, double>? splitAmounts;
-    if (_splitMode == SplitMode.exact) {
-      splitAmounts = {};
-      double runningTotal = 0;
-      for (var id in _splitAmong) {
-        final val =
-            double.tryParse(_exactAmountControllers[id]?.text ?? '0') ?? 0;
-        splitAmounts[id] = val;
-        runningTotal += val;
-      }
-
-      if ((runningTotal - totalAmount).abs() > 0.1) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Individual shares (Rs.${runningTotal.toStringAsFixed(2)}) must sum up to the total (Rs.${totalAmount.toStringAsFixed(2)})',
-            ),
-            backgroundColor: AppColors.error,
-          ),
-        );
-        return;
-      }
-    }
-
-    try {
-      await ref
-          .read(planNotifierProvider.notifier)
-          .addExpense(
-            planId: widget.planId,
-            title: _titleController.text.trim(),
-            amount: totalAmount,
-            paidBy: _paidBy!,
-            splitAmong: _splitAmong,
-            category: _category,
-            splitAmounts: splitAmounts,
-          );
-      if (mounted) context.pop();
-    } catch (e) {
+    if (errorMsg != null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error adding expense: $e'),
+            content: Text(errorMsg),
             backgroundColor: AppColors.error,
           ),
         );
       }
+    } else {
+      if (mounted) context.pop();
     }
   }
 
@@ -161,6 +56,8 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     final planAsync = ref.watch(planProvider(widget.planId));
     final isLoading = ref.watch(planNotifierProvider).isLoading;
     final currentUid = ref.watch(currentUserIdProvider);
+    final state = ref.watch(addExpenseControllerProvider);
+    final controller = ref.read(addExpenseControllerProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Add Expense')),
@@ -192,16 +89,17 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   TextFormField(
-                    controller: _titleController,
+                    initialValue: state.title,
                     decoration: const InputDecoration(
                       labelText: 'What was it for?',
                       hintText: 'e.g., Dinner, Cab, Tickets',
                     ),
+                    onChanged: controller.updateTitle,
                     validator: (v) => Validators.validateRequired(v, 'Title'),
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
-                    controller: _amountController,
+                    initialValue: state.amount,
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
@@ -210,13 +108,14 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                       hintText: '0.00',
                       prefixText: 'Rs. ',
                     ),
+                    onChanged: controller.updateAmount,
                     validator: Validators.validateAmount,
                   ),
                   const SizedBox(height: 16),
                   Text('Category:', style: AppTextStyles.h2),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<ExpenseCategory>(
-                    initialValue: _category,
+                    initialValue: state.category,
                     items: ExpenseCategory.values.map((cat) {
                       return DropdownMenuItem(
                         value: cat,
@@ -224,7 +123,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                       );
                     }).toList(),
                     onChanged: (val) {
-                      if (val != null) setState(() => _category = val);
+                      if (val != null) controller.updateCategory(val);
                     },
                     decoration: const InputDecoration(
                       contentPadding: EdgeInsets.symmetric(horizontal: 12),
@@ -234,14 +133,14 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                   Text('Paid by:', style: AppTextStyles.h2),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    initialValue: _paidBy,
+                    initialValue: state.paidBy,
                     items: plan.memberIds.map((id) {
                       return DropdownMenuItem(
                         value: id,
                         child: Text(memberLabel(id, members)),
                       );
                     }).toList(),
-                    onChanged: (val) => setState(() => _paidBy = val),
+                    onChanged: controller.updatePaidBy,
                     decoration: const InputDecoration(
                       contentPadding: EdgeInsets.symmetric(horizontal: 12),
                     ),
@@ -262,14 +161,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                             label: Text('Exact'),
                           ),
                         ],
-                        selected: {_splitMode},
+                        selected: {state.splitMode},
                         onSelectionChanged: (val) {
-                          setState(() {
-                            _splitMode = val.first;
-                            if (_splitMode == SplitMode.exact) {
-                              _distributeEqually();
-                            }
-                          });
+                          controller.updateSplitMode(val.first);
                         },
                       ),
                     ],
@@ -281,7 +175,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                     itemCount: plan.memberIds.length,
                     itemBuilder: (context, index) {
                       final memberId = plan.memberIds[index];
-                      final isSelected = _splitAmong.contains(memberId);
+                      final isSelected = state.splitAmong.contains(memberId);
                       return Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -289,28 +183,19 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                             title: Text(memberLabel(memberId, members)),
                             value: isSelected,
                             onChanged: (checked) {
-                              setState(() {
-                                if (checked == true) {
-                                  _splitAmong.add(memberId);
-                                } else {
-                                  _splitAmong.remove(memberId);
-                                }
-                                if (_splitMode == SplitMode.exact) {
-                                  _distributeEqually();
-                                }
-                              });
+                              controller.toggleSplitMember(memberId);
                             },
                             activeColor: AppColors.accent,
                             contentPadding: EdgeInsets.zero,
                           ),
-                          if (isSelected && _splitMode == SplitMode.exact)
+                          if (isSelected && state.splitMode == SplitMode.exact)
                             Padding(
                               padding: const EdgeInsets.only(
                                 left: 48,
                                 bottom: 8,
                               ),
                               child: TextFormField(
-                                controller: _exactAmountControllers[memberId],
+                                initialValue: state.exactAmounts[memberId],
                                 keyboardType:
                                     const TextInputType.numberWithOptions(
                                       decimal: true,
@@ -320,6 +205,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                                   isDense: true,
                                   labelText: 'Share',
                                 ),
+                                onChanged: (val) => controller.updateExactAmount(memberId, val),
                                 style: AppTextStyles.body.copyWith(
                                   fontSize: 14,
                                 ),
