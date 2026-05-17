@@ -73,7 +73,14 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     }
 
     final payer = members?.where((m) => m.uid == _paidBy).firstOrNull;
-    if (payer == null || payer.upiId == null || payer.upiId!.trim().isEmpty) {
+
+    // Skip UPI validation for anonymous (guest) users — they have no UPI ID
+    // by definition and should still be able to record expenses during exploration.
+    final isCurrentUserAnonymous =
+        ref.read(authStateProvider).value?.isAnonymous ?? false;
+
+    if (!isCurrentUserAnonymous &&
+        (payer == null || payer.upiId == null || payer.upiId!.trim().isEmpty)) {
       final isCurrentUser = payer?.uid == ref.read(currentUserIdProvider);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

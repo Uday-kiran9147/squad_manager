@@ -1,5 +1,10 @@
+.env
 *.g.dart
 *.freezed.dart
+
+# Firebase Secrets
+/android/app/google-services.json
+/lib/firebase_options.dart
 # Miscellaneous
 *.class
 *.log

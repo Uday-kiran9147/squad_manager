@@ -12,14 +12,14 @@ import 'package:squad/features/plan/screens/plan_detail_screen.dart';
 import 'package:squad/features/profile/screens/profile_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final authNotifier = ref.watch(routerNotifierProvider);
+  final authNotifier = ref.read(routerNotifierProvider);
 
   return GoRouter(
     initialLocation: '/home',
     refreshListenable: authNotifier,
     debugLogDiagnostics: true,
     redirect: (context, state) {
-      final authState = ref.watch(authStateProvider);
+      final authState = ref.read(authStateProvider);
       final user = authState.value;
       final isAuthPath = state.matchedLocation.startsWith('/auth');
       final isInvitePath = state.matchedLocation.startsWith('/invite');

@@ -14,6 +14,8 @@ import 'package:squad/features/plan/models/poll_option.dart';
 import 'package:squad/features/plan/models/itinerary_item.dart';
 import 'package:squad/features/plan/models/plan_balance.dart';
 import 'package:squad/features/plan/providers/plan_provider.dart';
+import 'package:squad/core/utils/calendar_utils.dart';
+
 
 class PlanDetailScreen extends ConsumerWidget {
   final String planId;
@@ -471,7 +473,35 @@ class _PlanStatusSection extends StatelessWidget {
               ],
             ),
           ],
+          if (plan.status == PlanStatus.confirmed ||
+              plan.status == PlanStatus.completed) ...[
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: () async {
+                final success = await CalendarUtils.addToCalendar(plan);
+                if (!success && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Could not open calendar. Make sure a calendar app is installed.'),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                }
+              },
+              icon: const Icon(Icons.calendar_today_outlined, size: 18),
+              label: const Text('Add to Calendar'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.success,
+                side: BorderSide(color: AppColors.success.withValues(alpha: 0.5)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+            ),
+          ],
           const SizedBox(height: 8),
+
           Row(
             children: [
               const Icon(
