@@ -108,9 +108,31 @@ export default function Home() {
             Squad handles the chaos of group planning. Poll on dates, lock in venues, and split bills — all in one social, beautiful app.
           </p>
 
-          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', alignItems: 'center', marginBottom: '80px' }}>
-            <button className="btn-primary" style={{ padding: '20px 48px', fontSize: '18px' }}>Get the App</button>
-            <button className="btn-outline" style={{ padding: '20px 48px', fontSize: '18px' }}>Watch Demo</button>
+          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', alignItems: 'center', marginBottom: '80px', flexWrap: 'wrap' }}>
+            <a 
+              href="https://play.google.com/store/apps/details?id=com.squad.app.squad" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="btn-primary" 
+              style={{ 
+                padding: '10px 28px', 
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '12px',
+                textAlign: 'left',
+                textDecoration: 'none',
+                height: '56px'
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M14.222 9.374c1.037-.61 1.037-2.137 0-2.748L11.528 5.04 8.32 8l3.207 2.96zm-3.595 2.116L7.583 8.68 1.03 14.73c.201 1.029 1.36 1.61 2.303 1.055zM1 13.396V2.603L6.846 8zM1.03 1.27l6.553 6.05 3.044-2.81L3.333.215C2.39-.341 1.231.24 1.03 1.27"/>
+              </svg>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '9px', opacity: 0.8, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.8px', lineHeight: 1.1 }}>Get it on</span>
+                <span style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'Sora', lineHeight: 1.1 }}>Google Play</span>
+              </div>
+            </a>
+            <button className="btn-outline" style={{ padding: '0 36px', fontSize: '16px', height: '56px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Watch Demo</button>
           </div>
 
           <div style={{

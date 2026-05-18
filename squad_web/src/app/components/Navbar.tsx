@@ -31,9 +31,22 @@ export default function Navbar() {
           <Link href="#features" style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Features</Link>
           <Link href="#pricing" style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Pricing</Link>
           <Link href="/terms" style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Terms</Link>
-          <button className="btn-primary" style={{ padding: '10px 20px', fontSize: '14px' }}>
+          <a
+            href="https://play.google.com/store/apps/details?id=com.squad.app.squad"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-primary"
+            style={{ 
+              padding: '10px 20px', 
+              fontSize: '14px',
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
             Download App
-          </button>
+          </a>
         </div>
       </div>
     </nav>
