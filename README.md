@@ -4,9 +4,18 @@
 > The India-first, mobile-first social planner that takes your inner circle from chaotic WhatsApp threads to locked-in venues, seamless polls, and easy UPI bill splits.
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.35.7-02569B?logo=flutter&style=for-the-badge)](https://flutter.dev)
-[![Next.js](https://img.shields.io/badge/Next.js-14.x-000000?logo=nextdotjs&style=for-the-badge)](https://nextjs.org)
+[![Next.js](https://img.shields.io/badge/Next.js-14.x-000000?logo=nextjs&style=for-the-badge)](https://nextjs.org)
 [![Firebase](https://img.shields.io/badge/Firebase-Auth%20%7C%20Firestore%20%7C%20FCM-FFCA28?logo=firebase&logoColor=black&style=for-the-badge)](https://firebase.google.com)
 [![Platform](https://img.shields.io/badge/Platforms-Android%20%7C%20iOS%20%7C%20Web-47A248?style=for-the-badge)](#)
+
+<div align="left">
+  <a href="https://play.google.com/store/apps/details?id=com.squad.app.squad" target="_blank">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Get it on Google Play" height="52" style="vertical-align: middle; margin-right: 10px;" />
+  </a>
+  <a href="https://github.com/uday-kiran9147/squad_manager" target="_blank">
+    <img src="https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github&logoColor=white" height="52" style="vertical-align: middle;" />
+  </a>
+</div>
 
 ---
 
