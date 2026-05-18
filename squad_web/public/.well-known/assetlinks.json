@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.squad.app.squad",
+      "sha256_cert_fingerprints": [
+        "17:5A:F3:EB:63:EB:72:4A:AE:4F:5A:85:2F:5E:54:2D:EB:4A:4F:98:9B:EC:C7:9C:11:7A:1F:C1:8D:AC:3E:E4",
+        "DE:62:C5:67:30:D2:91:4E:F5:11:34:CD:EE:5C:C6:45:95:58:75:55:26:07:1C:3C:68:80:10:20:72:15:D4:E5"
+      ]
+    }
+  }
+]
